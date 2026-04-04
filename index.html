@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>HR Intel Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #181c23;
+    --border: #1e2530;
+    --accent-red: #e63946;
+    --accent-orange: #f4a261;
+    --accent-gold: #ffd60a;
+    --accent-blue: #4cc9f0;
+    --accent-purple: #c77dff;
+    --accent-green: #4ade80;
+    --text: #e8eaf0;
+    --text-dim: #6b7280;
+    --text-mid: #9ca3af;
+    --triple-glow: 0 0 20px rgba(255,214,10,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 80px; /* space for bottom nav */
+  }
+
+  /* ── LOADING ── */
+  .loading-screen {
+    position: fixed; inset: 0; background: var(--bg); z-index: 999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    transition: opacity 0.5s ease;
+  }
+  .loading-screen.hidden { opacity: 0; pointer-events: none; }
+  .loading-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 6px; }
+  .loading-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent-red); letter-spacing: 2px; }
+  .loading-status { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+  .loading-bar-wrap { width: 240px; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
+  .loading-bar-fill { height: 100%; background: var(--accent-blue); border-radius: 1px; width: 0%; transition: width 0.4s ease; }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,12,15,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { display: flex; align-items: baseline; gap: 8px; }
+  .logo-main { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; }
+  .logo-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--accent-red); letter-spacing: 2px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .live-dot { display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent-green); }
+  .live-dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); animation: pulse 2s ease-in-out infinite; flex-shrink: 0; }
+  .live-dot.loading { color: var(--accent-gold); }
+  .live-dot.loading::before { background: var(--accent-gold); }
+  .live-dot.error { color: var(--accent-red); }
+  .live-dot.error::before { background: var(--accent-red); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+
+  .refresh-btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 16px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-mid); border-radius: 6px; cursor: pointer;
+    padding: 6px 10px; transition: all 0.2s;
+  }
+  .refresh-btn:disabled { opacity: .4; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10,12,15,0.98);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; padding: 10px 4px 8px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1px;
+    color: var(--text-dim); background: none; border: none; cursor: pointer;
+    transition: color 0.2s; text-transform: uppercase;
+  }
+  .nav-btn .nav-icon { font-size: 18px; line-height: 1; }
+  .nav-btn.active { color: var(--accent-blue); }
+  .nav-btn.active .nav-icon { filter: drop-shadow(0 0 4px var(--accent-blue)); }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  .page-title {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* ── SEASON NOTE ── */
+  .season-note {
+    background: rgba(76,201,240,0.06); border: 1px solid rgba(76,201,240,0.2);
+    border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-mid);
+    display: none;
+  }
+  .season-note.visible { display: block; }
+
+  /* ── ALERTS ── */
+  .alert-triple {
+    background: linear-gradient(135deg, rgba(255,214,10,0.08), rgba(230,57,70,0.08));
+    border: 1px solid var(--accent-gold); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 12px;
+    box-shadow: var(--triple-glow);
+    animation: alertPulse 3s ease-in-out infinite;
+    position: relative; overflow: hidden;
+  }
+  .alert-triple::before {
+    content: '⚡ TRIPLE'; position: absolute; top: 0; right: 0;
+    background: var(--accent-gold); color: #000;
+    font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 2px;
+    padding: 3px 10px; border-radius: 0 10px 0 8px;
+  }
+  @keyframes alertPulse {
+    0%,100%{ box-shadow: var(--triple-glow); }
+    50%{ box-shadow: 0 0 30px rgba(255,214,10,.4); }
+  }
+  .alert-double {
+    background: rgba(244,162,97,0.06); border: 1px solid rgba(244,162,97,0.4);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+    position: relative; overflow: hidden;
+  }
+  .alert-double::before {
+    content: '🔶 DOUBLE'; position: absolute; top: 0; right: 0;
+    background: var(--accent-orange); color: #000;
+    font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 2px;
+    padding: 3px 10px; border-radius: 0 10px 0 8px;
+  }
+  .alert-game { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-mid); margin-bottom: 6px; }
+  .alert-matchup { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .alert-matchup .batter { color: var(--accent-blue); }
+  .alert-matchup .pitcher { color: var(--accent-red); }
+  .alert-matchup .vs { color: var(--text-dim); margin: 0 4px; font-size: 12px; }
+  .alert-venue { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent-gold); margin-top: 4px; }
+  .alert-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 0.5px; padding: 3px 7px; border-radius: 3px; text-transform: uppercase; }
+  .tag-hr     { background: rgba(76,201,240,0.15);  color: var(--accent-blue);  border: 1px solid rgba(76,201,240,0.3); }
+  .tag-pitcher{ background: rgba(230,57,70,0.15);   color: var(--accent-red);   border: 1px solid rgba(230,57,70,0.3); }
+  .tag-venue  { background: rgba(255,214,10,0.1);   color: var(--accent-gold);  border: 1px solid rgba(255,214,10,0.3); }
+  .tag-rank   { background: rgba(255,255,255,0.05); color: var(--text-mid);     border: 1px solid var(--border); }
+  .tag-time   { background: rgba(74,222,128,0.1);   color: var(--accent-green); border: 1px solid rgba(74,222,128,0.3); }
+  .no-alerts { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); padding: 16px 0; }
+
+  /* ── GAME CARDS (mobile — vertical stack) ── */
+  .game-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 12px; overflow: hidden;
+    cursor: pointer; transition: border-color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .game-card:active { opacity: 0.85; }
+  .game-card.triple-game { border-color: var(--accent-gold); box-shadow: 0 0 12px rgba(255,214,10,0.15); animation: hrTripleBorder 2s ease-in-out infinite; }
+  .game-card.double-game { border-color: rgba(244,162,97,0.5); animation: hrDoubleBorder 2.5s ease-in-out infinite; }
+  .game-card.nohr-triple-game { border-color: #df00ff; box-shadow: 0 0 12px rgba(223,0,255,0.2); animation: nohrTripleBorder 2s ease-in-out infinite; }
+  .game-card.nohr-double-game { border-color: rgba(199,125,255,0.5); animation: nohrDoubleBorder 2.5s ease-in-out infinite; }
+  @keyframes hrTripleBorder {
+    0%,100%{ border-color: var(--accent-gold); box-shadow: 0 0 12px rgba(255,214,10,0.15); }
+    50%{ border-color: var(--accent-gold); box-shadow: 0 0 22px rgba(255,214,10,0.4); }
+  }
+  @keyframes hrDoubleBorder {
+    0%,100%{ border-color: rgba(244,162,97,0.5); box-shadow: none; }
+    50%{ border-color: rgba(244,162,97,0.9); box-shadow: 0 0 10px rgba(244,162,97,0.2); }
+  }
+  @keyframes nohrTripleBorder {
+    0%,100%{ border-color: #df00ff; box-shadow: 0 0 12px rgba(223,0,255,0.2); }
+    50%{ border-color: #df00ff; box-shadow: 0 0 22px rgba(223,0,255,0.5); }
+  }
+  @keyframes nohrDoubleBorder {
+    0%,100%{ border-color: rgba(199,125,255,0.5); box-shadow: none; }
+    50%{ border-color: rgba(199,125,255,0.9); box-shadow: 0 0 10px rgba(199,125,255,0.2); }
+  }
+
+  .game-card-header { padding: 12px 14px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .game-teams { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+  .game-teams .away { color: var(--text-mid); }
+  .game-teams .home { color: var(--text); }
+  .game-teams .at { color: var(--text-dim); font-size: 14px; }
+  .game-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .threat-badge { display: inline-block; font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 1px; padding: 2px 8px; border-radius: 3px; margin-top: 5px; }
+  .threat-badge.triple { background: var(--accent-gold); color: #000; }
+  .threat-badge.double { background: var(--accent-orange); color: #000; }
+
+  .game-card-body { padding: 10px 14px; }
+  .team-section { margin-bottom: 8px; }
+  .team-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+  .hitter-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; }
+  .hitter-row-name { font-size: 13px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 5px; }
+  .hitter-row-hr { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; color: var(--accent-blue); }
+  .top25-badge { font-family: 'IBM Plex Mono', monospace; font-size: 9px; padding: 1px 5px; background: rgba(76,201,240,0.15); color: var(--accent-blue); border: 1px solid rgba(76,201,240,0.3); border-radius: 2px; }
+
+  /* Hand badge */
+  .hand-badge { display: inline-flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0; }
+  .hand-badge.L { background: rgba(230,57,70,0.2); color: var(--accent-red); border: 1px solid rgba(230,57,70,0.4); }
+  .hand-badge.R { background: rgba(76,201,240,0.15); color: var(--accent-blue); border: 1px solid rgba(76,201,240,0.3); }
+  .hand-badge.S { background: rgba(255,214,10,0.12); color: var(--accent-gold); border: 1px solid rgba(255,214,10,0.3); }
+
+  .pitcher-matchup { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px; }
+  .pitcher-line { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; gap: 6px; }
+  .pitcher-line-left { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+  .pitcher-name-label { font-size: 12px; color: var(--text-mid); }
+  .pitcher-name-label span { font-weight: 600; color: var(--text); }
+
+  /* Live score */
+  .live-score { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface2); border-top: 1px solid var(--border); }
+  .live-score.is-live { background: rgba(74,222,128,0.04); }
+  .live-score.is-final { background: rgba(230,57,70,0.04); }
+  .score-team { display: flex; align-items: center; gap: 10px; }
+  .score-abbr { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--text-mid); }
+  .score-runs { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--text); line-height: 1; }
+  .score-runs.winning { color: var(--accent-green); }
+  .score-middle { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .inning-badge { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 3px; white-space: nowrap; }
+  .inning-badge.live { background: rgba(74,222,128,0.15); color: var(--accent-green); border: 1px solid rgba(74,222,128,0.3); animation: pulse 2s ease-in-out infinite; }
+  .inning-badge.final { background: rgba(230,57,70,0.15); color: var(--accent-red); border: 1px solid rgba(230,57,70,0.4); }
+  .inning-badge.scheduled { background: rgba(76,201,240,0.08); color: var(--accent-blue); border: 1px solid rgba(76,201,240,0.2); }
+
+  /* ── LEADERBOARD TABS ── */
+  .tab-bar {
+    display: flex; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 4px; gap: 4px; margin-bottom: 14px;
+  }
+  .tab-btn {
+    flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 8px 4px; border-radius: 7px; border: none;
+    background: transparent; color: var(--text-dim); cursor: pointer;
+    transition: all 0.2s; line-height: 1.3; text-align: center;
+  }
+  .tab-btn.active { background: var(--surface); color: var(--text); }
+  .tab-btn.active.blue   { color: var(--accent-blue); }
+  .tab-btn.active.red    { color: var(--accent-red); }
+  .tab-btn.active.gold   { color: var(--accent-gold); }
+  .tab-btn.active.purple { color: var(--accent-purple); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── STAT ROWS ── */
+  .stat-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-bottom: 1px solid rgba(30,37,48,0.6);
+    background: var(--surface); border-radius: 0;
+    animation: rowIn 0.25s ease forwards; opacity: 0;
+  }
+  .stat-row:first-child { border-radius: 10px 10px 0 0; }
+  .stat-row:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
+  .stat-row:only-child { border-radius: 10px; }
+  @keyframes rowIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+  .stat-rows-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+
+  .row-rank { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); width: 22px; flex-shrink: 0; }
+  .row-info { flex: 1; min-width: 0; }
+  .row-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
+  .row-sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+  .row-val { font-family: 'Bebas Neue', sans-serif; font-size: 24px; line-height: 1; flex-shrink: 0; }
+  .row-val.blue   { color: var(--accent-blue); }
+  .row-val.red    { color: var(--accent-red); }
+  .row-val.gold   { color: var(--accent-gold); }
+  .row-val.purple { color: var(--accent-purple); }
+  .row-sub2 { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-mid); text-align: right; }
+
+  .alert-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-gold); margin-left: 4px; vertical-align: middle; animation: pulse 2s ease-in-out infinite; }
+  .name-team-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); font-weight: 400; }
+
+  /* row animation delays */
+  .stat-row:nth-child(1)  {animation-delay:.02s} .stat-row:nth-child(2)  {animation-delay:.04s}
+  .stat-row:nth-child(3)  {animation-delay:.06s} .stat-row:nth-child(4)  {animation-delay:.08s}
+  .stat-row:nth-child(5)  {animation-delay:.10s} .stat-row:nth-child(6)  {animation-delay:.12s}
+  .stat-row:nth-child(7)  {animation-delay:.14s} .stat-row:nth-child(8)  {animation-delay:.16s}
+  .stat-row:nth-child(9)  {animation-delay:.18s} .stat-row:nth-child(10) {animation-delay:.20s}
+  .stat-row:nth-child(11) {animation-delay:.22s} .stat-row:nth-child(12) {animation-delay:.24s}
+  .stat-row:nth-child(13) {animation-delay:.26s} .stat-row:nth-child(14) {animation-delay:.28s}
+  .stat-row:nth-child(15) {animation-delay:.30s} .stat-row:nth-child(16) {animation-delay:.32s}
+  .stat-row:nth-child(17) {animation-delay:.34s} .stat-row:nth-child(18) {animation-delay:.36s}
+  .stat-row:nth-child(19) {animation-delay:.38s} .stat-row:nth-child(20) {animation-delay:.40s}
+  .stat-row:nth-child(21) {animation-delay:.42s} .stat-row:nth-child(22) {animation-delay:.44s}
+  .stat-row:nth-child(23) {animation-delay:.46s} .stat-row:nth-child(24) {animation-delay:.48s}
+  .stat-row:nth-child(25) {animation-delay:.50s} .stat-row:nth-child(26) {animation-delay:.52s}
+  .stat-row:nth-child(27) {animation-delay:.54s} .stat-row:nth-child(28) {animation-delay:.56s}
+  .stat-row:nth-child(29) {animation-delay:.58s} .stat-row:nth-child(30) {animation-delay:.60s}
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+    opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface); border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--border);
+    max-height: 90vh; overflow-y: auto;
+    transform: translateY(100%); transition: transform 0.3s ease;
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal::-webkit-scrollbar { display: none; }
+
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 0; }
+  .modal-header { padding: 14px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; }
+  .modal-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+  .modal-close { font-size: 18px; color: var(--text-dim); background: none; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+  .modal-body { padding: 16px 20px 24px; }
+
+  .modal-section { margin-bottom: 20px; }
+  .modal-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+
+  /* Weather pills */
+  .info-pills { display: flex; gap: 8px; }
+  .info-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; flex: 1; }
+  .info-pill-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 3px; }
+  .info-pill-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; color: var(--text); line-height: 1; }
+  .info-pill-sub { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-mid); margin-top: 2px; }
+  .wind-out { color: var(--accent-green) !important; }
+  .wind-cross { color: var(--accent-gold) !important; }
+  .wind-in { color: var(--accent-red) !important; }
+
+  /* Pitcher cards */
+  .pitcher-cards { display: flex; flex-direction: column; gap: 10px; }
+  .pitcher-exp-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .pitcher-exp-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .pitcher-exp-team { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 8px; }
+  .stat-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .stat-pill { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 3px 8px; border-radius: 4px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); }
+  .stat-pill .lbl { color: var(--text-dim); font-size: 9px; letter-spacing: 1px; margin-right: 3px; }
+  .recent-starts { margin-top: 10px; }
+  .recent-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+  .recent-start-row { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-mid); padding: 4px 0; border-bottom: 1px solid rgba(30,37,48,0.4); }
+
+  /* Lineups */
+  .lineups-grid { display: flex; flex-direction: column; gap: 16px; }
+  .lineup-team-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; }
+  .lineup-col-header { display: grid; grid-template-columns: 14px 20px 1fr 24px 38px 28px 32px; gap: 0; padding: 3px 0; margin-bottom: 2px; }
+  .lineup-col-header span { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); }
+  .lineup-row { display: grid; grid-template-columns: 14px 20px 1fr 24px 38px 28px 32px; gap: 0; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(30,37,48,0.5); font-size: 12px; }
+  .no-lineup { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); padding: 12px 0; }
+
+  /* Box score */
+  .box-table { width: 100%; border-collapse: collapse; font-size: 12px; overflow-x: auto; display: block; }
+  .box-table thead tr { background: var(--surface2); }
+  .box-table th { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); padding: 6px 8px; text-align: center; white-space: nowrap; }
+  .box-table th:first-child { text-align: left; }
+  .box-table td { padding: 7px 8px; text-align: center; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; }
+  .box-table td:first-child { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; text-align: left; }
+  .box-r { color: var(--accent-blue); font-weight: 600; border-left: 1px solid var(--border); }
+
+  /* Team toggle */
+  .team-toggle {
+    display: flex; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 25px;
+    padding: 4px; gap: 4px; margin-bottom: 14px;
+  }
+  .team-toggle-btn {
+    flex: 1; font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px; letter-spacing: 2px;
+    padding: 8px 12px; border-radius: 22px; border: none;
+    background: transparent; color: var(--text-dim);
+    cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .team-toggle-btn.active {
+    background: var(--accent-blue); color: #000; font-weight: 600;
+  }
+
+  /* Lineup table with today + season columns */
+  .lineup-table { width: 100%; border-collapse: collapse; }
+  .lineup-table thead tr { background: var(--surface2); }
+  .lineup-table thead th {
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    letter-spacing: 1px; color: var(--text-dim); padding: 6px 6px;
+    text-align: right; white-space: nowrap;
+  }
+  .lineup-table thead th:first-child { text-align: left; }
+  .lineup-table thead th.today-col { color: var(--accent-green); }
+  .lineup-table thead th.season-col { color: var(--accent-blue); }
+  .lineup-table tbody tr { border-bottom: 1px solid rgba(30,37,48,0.5); }
+  .lineup-table tbody tr:hover { background: var(--surface2); }
+  .lineup-table tbody td {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    padding: 7px 6px; text-align: right; color: var(--text-mid);
+  }
+  .lineup-table tbody td:first-child { text-align: left; }
+  .lineup-table .player-cell { display: flex; align-items: center; gap: 5px; }
+  .lineup-table .player-num { color: var(--text-dim); font-size: 10px; width: 14px; flex-shrink: 0; }
+  .lineup-table .player-name-cell { font-weight: 600; color: var(--text); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+  .lineup-table .today-val { color: var(--accent-green); font-weight: 600; }
+  .lineup-table .season-val { color: var(--accent-blue); }
+  .modal-loading { padding: 40px 20px; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: 2px; }
+
+  /* last updated */
+  /* NO HR alert styles */
+  .alert-nohr-triple {
+    background: linear-gradient(135deg, rgba(223,0,255,0.08), rgba(199,125,255,0.06));
+    border: 1px solid #df00ff; border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 12px;
+    box-shadow: 0 0 20px rgba(223,0,255,0.2);
+    animation: nohrTriplePulse 3s ease-in-out infinite;
+    position: relative; overflow: hidden;
+  }
+  .alert-nohr-triple::before {
+    content: '⚡ NO HR TRIPLE'; position: absolute; top: 0; right: 0;
+    background: #df00ff; color: #000;
+    font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 2px;
+    padding: 3px 10px; border-radius: 0 10px 0 8px;
+  }
+  @keyframes nohrTriplePulse {
+    0%,100%{ box-shadow: 0 0 20px rgba(223,0,255,0.2); }
+    50%{ box-shadow: 0 0 40px rgba(223,0,255,0.5), 0 0 60px rgba(223,0,255,0.2); }
+  }
+  .alert-nohr-double {
+    background: rgba(199,125,255,0.06); border: 1px solid rgba(199,125,255,0.5);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+    position: relative; overflow: hidden;
+  }
+  .alert-nohr-double::before {
+    content: '🛡️ NO HR DOUBLE'; position: absolute; top: 0; right: 0;
+    background: #c77dff; color: #000;
+    font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 2px;
+    padding: 3px 10px; border-radius: 0 10px 0 8px;
+  }
+  .tag-nohr-venue   { background: rgba(199,125,255,0.12); color: #c77dff; border: 1px solid rgba(199,125,255,0.3); }
+  .tag-nohr-pitcher { background: rgba(223,0,255,0.1);   color: #df00ff; border: 1px solid rgba(223,0,255,0.3); }
+  .tag-nohr-team    { background: rgba(199,125,255,0.08); color: #c77dff; border: 1px solid rgba(199,125,255,0.2); }
+
+  /* Threats tab toggle */
+  .threats-toggle {
+    display: flex; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 25px;
+    padding: 4px; gap: 4px; margin-bottom: 16px;
+  }
+  .threats-toggle-btn {
+    flex: 1; font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px;
+    padding: 8px 8px; border-radius: 22px; border: none;
+    background: transparent; color: var(--text-dim);
+    cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .threats-toggle-btn.active-hr   { background: var(--accent-gold); color: #000; }
+  .threats-toggle-btn.active-nohr { background: #c77dff; color: #000; }
+  .threats-panel { display: none; }
+  .threats-panel.active { display: block; }
+
+  /* Flashing threat badges on game cards */
+  @keyframes threatFlash {
+    0%,100%{ opacity:1; transform:scale(1); }
+    50%{ opacity:0.7; transform:scale(1.05); }
+  }
+  .threat-badge.triple    { background: var(--accent-gold); color: #000; animation: threatFlash 2s ease-in-out infinite; }
+  .threat-badge.double    { background: var(--accent-orange); color: #000; animation: threatFlash 2.5s ease-in-out infinite; }
+  .threat-badge.nohr-triple { background: #df00ff; color: #000; animation: threatFlash 2s ease-in-out infinite; }
+  .threat-badge.nohr-double { background: #c77dff; color: #000; animation: threatFlash 2.5s ease-in-out infinite; }
+
+  .last-updated { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-title">HR INTEL</div>
+  <div class="loading-sub">MOBILE · MLB 2026</div>
+  <div class="loading-status" id="loadingStatus">CONNECTING...</div>
+  <div class="loading-bar-wrap"><div class="loading-bar-fill" id="loadingBar"></div></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">—</div>
+        <div class="modal-subtitle" id="modalSubtitle">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <div class="modal-loading">LOADING...</div>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span class="logo-main">HR INTEL</span>
+    <span class="logo-tag">MOBILE · 2026</span>
+  </div>
+  <div class="header-right">
+    <span class="last-updated" id="lastUpdated">—</span>
+    <span class="live-dot loading" id="liveStatus">LOADING</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="initDashboard()" title="Refresh">↻</button>
+  </div>
+</header>
+
+<!-- PAGES -->
+
+<!-- PAGE: GAMES -->
+<div class="page active" id="page-games">
+  <div class="season-note" id="seasonNote"></div>
+  <div class="page-title">📅 Today — <span id="todayDate">—</span></div>
+  <div id="gamesContainer"><div class="no-alerts">Loading schedule...</div></div>
+</div>
+
+<!-- PAGE: ALERTS -->
+<div class="page" id="page-alerts">
+  <div class="page-title">⚡ Threat Alerts — Pregame Only</div>
+  <div class="threats-toggle">
+    <button class="threats-toggle-btn active-hr" id="mHRBtn" onclick="switchMobileThreats('hr')">⚡ HR Threats</button>
+    <button class="threats-toggle-btn" id="mNoHRBtn" onclick="switchMobileThreats('nohr')">🛡️ NO HR</button>
+  </div>
+  <div class="threats-panel active" id="mHRPanel">
+    <div id="alertsContainer"><div class="no-alerts">Analyzing matchups...</div></div>
+  </div>
+  <div class="threats-panel" id="mNoHRPanel">
+    <div id="nohrAlertsContainer"><div class="no-alerts">Analyzing defensive matchups...</div></div>
+  </div>
+</div>
+
+<!-- PAGE: LEADERBOARDS -->
+<div class="page" id="page-boards">
+  <div class="page-title">📊 Season Leaderboards</div>
+  <div class="tab-bar">
+    <button class="tab-btn active blue" onclick="switchTab('hitters')">HR<br>Hitters</button>
+    <button class="tab-btn red"         onclick="switchTab('pitchers')">HR<br>Allowed</button>
+    <button class="tab-btn gold"        onclick="switchTab('venues')">Top 10<br>Venues</button>
+    <button class="tab-btn purple"      onclick="switchTab('ko')">K<br>Pitchers</button>
+    <button class="tab-btn" style="color:var(--accent-green);" onclick="switchTab('teamhr')">Team<br>HR</button>
+  </div>
+  <div class="tab-panel active" id="tab-hitters"><div class="no-alerts">Loading...</div></div>
+  <div class="tab-panel"        id="tab-pitchers"><div class="no-alerts">Loading...</div></div>
+  <div class="tab-panel"        id="tab-venues"><div class="no-alerts">Loading...</div></div>
+  <div class="tab-panel"        id="tab-ko"><div class="no-alerts">Loading...</div></div>
+  <div class="tab-panel"        id="tab-teamhr"><div class="no-alerts">Loading...</div></div>
+</div>
+
+<!-- PAGE: STADIUMS -->
+<div class="page" id="page-stadiums">
+  <div class="page-title">🏟️ All 30 Stadiums — HR Totals</div>
+  <div class="stat-rows-wrap" id="stadiumsList"><div class="no-alerts" style="padding:20px;">Loading...</div></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-games"    onclick="switchPage('games')">
+    <span class="nav-icon">📅</span>Games
+  </button>
+  <button class="nav-btn"        id="nav-alerts"   onclick="switchPage('alerts')">
+    <span class="nav-icon">⚡</span>Alerts
+  </button>
+  <button class="nav-btn"        id="nav-boards"   onclick="switchPage('boards')">
+    <span class="nav-icon">📊</span>Leaders
+  </button>
+  <button class="nav-btn"        id="nav-stadiums" onclick="switchPage('stadiums')">
+    <span class="nav-icon">🏟️</span>Stadiums
+  </button>
+</nav>
+
+<script>
+const SEASON = 2026;
+const BASE   = 'https://statsapi.mlb.com/api/v1';
+
+let hitters=[], hrPitchers=[], koPitchers=[], venues=[], todayGames=[];
+let noHRPitchersAL=[], noHRPitchersNL=[], noHRTeams=[], teamHRLeaderboard=[];
+
+// ── NAVIGATION ──────────────────────────────────────────────────────
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active','blue','red','gold','purple'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const colors = { hitters:'blue', pitchers:'red', venues:'gold', ko:'purple' };
+  const btn = document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`);
+  if (btn) btn.classList.add('active', colors[name]||'blue');
+}
+
+function switchMobileThreats(tab) {
+  document.querySelectorAll('.threats-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('mHRBtn').className='threats-toggle-btn';
+  document.getElementById('mNoHRBtn').className='threats-toggle-btn';
+  if (tab==='hr') {
+    document.getElementById('mHRPanel').classList.add('active');
+    document.getElementById('mHRBtn').classList.add('active-hr');
+  } else {
+    document.getElementById('mNoHRPanel').classList.add('active');
+    document.getElementById('mNoHRBtn').classList.add('active-nohr');
+  }
+}
+
+// ── NO HR DATA FETCHES ───────────────────────────────────────────────
+async function fetchNoHRPitchers() {
+  await buildLeagueCache();
+  const d=await fetchJSON(`${BASE}/stats?stats=season&group=pitching&season=${SEASON}&sortStat=homeRuns&order=asc&limit=100&sportId=1&gameType=R`);
+  const splits=(d.stats?.[0]?.splits||[]).filter(s=>(s.stat?.gamesStarted||0)>=3);
+  const all=splits.map(s=>({
+    id:s.player?.id, name:s.player?.fullName||'—',
+    team:getTeamAbbr(s.team?.id,s.team?.abbreviation),
+    teamId:s.team?.id, league:getLeague(s.team?.id),
+    hr:s.stat?.homeRuns||0, gs:s.stat?.gamesStarted||0, hand:null
+  }));
+  const hands=await Promise.all(all.map(p=>fetchHandedness(p.id)));
+  all.forEach((p,i)=>p.hand=hands[i]);
+  return { AL:all.filter(p=>p.league==='A').slice(0,10), NL:all.filter(p=>p.league==='N').slice(0,10) };
+}
+
+async function fetchNoHRTeams() {
+  try {
+    const d2=await fetchJSON(`${BASE}/teams?sportId=1&season=${SEASON}`);
+    const teamIds=(d2.teams||[]).filter(t=>t.sport?.id===1).map(t=>t.id);
+    const teamStats=await Promise.all(teamIds.slice(0,30).map(async id=>{
+      try {
+        const ts=await fetchJSON(`${BASE}/teams/${id}/stats?stats=season&group=hitting&season=${SEASON}&sportId=1`);
+        const stat=ts.stats?.[0]?.splits?.[0]?.stat;
+        return { teamId:id, abbr:getTeamAbbr(id,'—'), hr:stat?.homeRuns||0 };
+      } catch { return { teamId:id, abbr:getTeamAbbr(id,'—'), hr:0 }; }
+    }));
+    return teamStats.sort((a,b)=>a.hr-b.hr).slice(0,10);
+  } catch { return []; }
+}
+
+function analyzeNoHRMatchups() {
+  const bottom5VenueIds=new Set(venues.slice().reverse().slice(0,5).map(v=>v.venueId));
+  const bottom5Venues=venues.slice().reverse().slice(0,5);
+  const noHRPitcherIds=new Set([...noHRPitchersAL,...noHRPitchersNL].map(p=>p.id));
+  const noHRPitcherMap=Object.fromEntries([...noHRPitchersAL,...noHRPitchersNL].map(p=>[p.id,p]));
+  const noHRTeamAbbrs=new Set(noHRTeams.map(t=>t.abbr));
+  const alerts=[], seen=new Set();
+
+  for (const game of todayGames) {
+    if (game.isFinal||game.isLive) continue;
+    const isBottomVenue=bottom5VenueIds.has(game.venueId);
+    const venueData=bottom5Venues.find(v=>v.venueId===game.venueId);
+    const pairs=[
+      { pitcherId:game.home.pitcherId, pitcherName:game.home.pitcherName, battingTeamAbbr:game.away.team },
+      { pitcherId:game.away.pitcherId, pitcherName:game.away.pitcherName, battingTeamAbbr:game.home.team },
+    ];
+    for (const pair of pairs) {
+      const isNoHRPitcher=pair.pitcherId&&noHRPitcherIds.has(pair.pitcherId);
+      const pitcher=isNoHRPitcher?noHRPitcherMap[pair.pitcherId]:null;
+      const isNoHRTeam=noHRTeamAbbrs.has(pair.battingTeamAbbr);
+      if (!isNoHRPitcher&&!isBottomVenue) continue;
+      const count=[isBottomVenue,isNoHRPitcher,isNoHRTeam].filter(Boolean).length;
+      if (count<2) continue;
+      const key=`nohr-${game.gamePk}-${pair.pitcherId||'nop'}`;
+      if (seen.has(key)) continue; seen.add(key);
+      alerts.push({ type:count>=3?'nohr-triple':'nohr-double', game, pitcher:pitcher||{name:pair.pitcherName||'TBD',hr:0}, venueData, isBottomVenue, isNoHRPitcher, isNoHRTeam, battingTeamAbbr:pair.battingTeamAbbr });
+    }
+  }
+  return alerts.sort((a,b)=>(b.type==='nohr-triple')-(a.type==='nohr-triple'));
+}
+
+function renderNoHRAlerts(alerts) {
+  const c=document.getElementById('nohrAlertsContainer');
+  if (!alerts.length) { c.innerHTML=`<div class="no-alerts">✓ No NO HR threats yet. Check back once lineups post.</div>`; return; }
+  c.innerHTML=alerts.map(a=>{
+    const cls=a.type==='nohr-triple'?'alert-nohr-triple':'alert-nohr-double';
+    const pH=a.pitcher?.id?handednessCache[a.pitcher.id]:null;
+    const pB=pH?`<span class="hand-badge ${pH}" style="font-size:10px;width:17px;height:17px;">${pH}</span>`:'';
+    const vTag=a.isBottomVenue?`<span class="tag tag-nohr-venue">Bottom 5 Venue · ${a.venueData?.hr||0} HRs</span>`:'';
+    const pTag=a.isNoHRPitcher?`<span class="tag tag-nohr-pitcher">Low HR Pitcher · ${a.pitcher?.hr||0} HR allowed</span>`:'';
+    const tTag=a.isNoHRTeam?`<span class="tag tag-nohr-team">Low HR Team · ${a.battingTeamAbbr}</span>`:'';
+    const allTag=a.type==='nohr-triple'?`<span class="tag" style="background:rgba(223,0,255,0.15);color:#df00ff;border:1px solid rgba(223,0,255,0.4);">🛡️ ALL 3</span>`:'';
+    return `<div class="${cls}">
+      <div class="alert-game">${a.game.away.team} @ ${a.game.home.team} · ${a.game.time}</div>
+      <div class="alert-matchup">${pB}<span class="pitcher" style="color:#c77dff;">${a.pitcher?.name||'TBD'}</span><span class="vs">at</span><span style="color:#c77dff;">${a.game.venue}</span></div>
+      ${a.isNoHRTeam?`<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c77dff;margin-top:4px;">🛡️ ${a.battingTeamAbbr} — Low HR team batting</div>`:''}
+      <div class="alert-tags">${vTag}${pTag}${tTag}${allTag}</div>
+    </div>`;
+  }).join('');
+}
+
+async function fetchWithTimeout(url, ms=12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  } catch(e) { clearTimeout(timer); throw e; }
+}
+
+async function fetchJSON(url) {
+  // Direct call — works fine from Netlify hosted URL (CORS allowed)
+  try {
+    return await fetchWithTimeout(url, 12000);
+  } catch(e) {
+    // Fallback proxy if direct fails
+    try {
+      const r = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+      if (!r.ok) throw new Error(`Proxy HTTP ${r.status}`);
+      return r.json();
+    } catch(e2) {
+      throw new Error('Failed: ' + e2.message);
+    }
+  }
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatTime(iso) {
+  if (!iso) return 'TBD';
+  return new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+}
+function setProgress(pct, msg) {
+  document.getElementById('loadingBar').style.width = pct+'%';
+  document.getElementById('loadingStatus').textContent = msg;
+}
+function setStatus(cls, txt) {
+  const el = document.getElementById('liveStatus');
+  el.className = 'live-dot '+cls;
+  el.textContent = txt;
+}
+function hideLoading() {
+  const ls = document.getElementById('loadingScreen');
+  ls.classList.add('hidden');
+  setTimeout(()=>ls.style.display='none', 600);
+}
+function handBadge(hand) {
+  if (!hand) return '';
+  return `<span class="hand-badge ${hand}">${hand}</span>`;
+}
+
+// ── CACHES ───────────────────────────────────────────────────────────
+const handednessCache={}, batHandCache={}, teamLeagueCache={}, teamAbbrCache={};
+
+async function fetchHandedness(id) {
+  if (!id||handednessCache[id]!==undefined) return handednessCache[id]||null;
+  try { const d=await fetchJSON(`${BASE}/people/${id}`); handednessCache[id]=d.people?.[0]?.pitchHand?.code||null; } catch{}
+  return handednessCache[id]||null;
+}
+async function fetchBatHand(id) {
+  if (!id||batHandCache[id]!==undefined) return batHandCache[id]||null;
+  try { const d=await fetchJSON(`${BASE}/people/${id}`); batHandCache[id]=d.people?.[0]?.batSide?.code||null; } catch{}
+  return batHandCache[id]||null;
+}
+async function buildLeagueCache() {
+  if (Object.keys(teamLeagueCache).length>0) return;
+  try {
+    const d=await fetchJSON(`${BASE}/teams?sportId=1&season=${SEASON}&sportIds=1`);
+    for (const t of (d.teams||[])) {
+      const k=String(t.id), l=t.league?.name||'';
+      teamLeagueCache[k]=l.includes('American')?'A':l.includes('National')?'N':'?';
+      teamAbbrCache[k]=t.abbreviation||'—';
+    }
+  } catch{}
+}
+function getLeague(id){ return teamLeagueCache[String(id)]||'?'; }
+function getTeamAbbr(id,fb){ return teamAbbrCache[String(id)]||fb||'—'; }
+
+// ── FETCH STATS ──────────────────────────────────────────────────────
+async function fetchHitters() {
+  await buildLeagueCache();
+  const d=await fetchJSON(`${BASE}/stats?stats=season&group=hitting&season=${SEASON}&sortStat=homeRuns&order=desc&limit=25&sportId=1`);
+  const list=(d.stats?.[0]?.splits||[]).map(s=>({ id:s.player?.id, name:s.player?.fullName||'—', team:getTeamAbbr(s.team?.id,s.team?.abbreviation), teamId:s.team?.id, league:getLeague(s.team?.id), hr:s.stat?.homeRuns||0, hand:null }));
+  const hands=await Promise.all(list.map(p=>fetchBatHand(p.id)));
+  list.forEach((p,i)=>p.hand=hands[i]);
+  return list;
+}
+async function fetchHRPitchers() {
+  await buildLeagueCache();
+  const d=await fetchJSON(`${BASE}/stats?stats=season&group=pitching&season=${SEASON}&sortStat=homeRuns&order=desc&limit=25&sportId=1`);
+  const list=(d.stats?.[0]?.splits||[]).map(s=>({ id:s.player?.id, name:s.player?.fullName||'—', team:getTeamAbbr(s.team?.id,s.team?.abbreviation), teamId:s.team?.id, league:getLeague(s.team?.id), hr:s.stat?.homeRuns||0, hand:null }));
+  const hands=await Promise.all(list.map(p=>fetchHandedness(p.id)));
+  list.forEach((p,i)=>p.hand=hands[i]);
+  return list;
+}
+async function fetchKOPitchers() {
+  await buildLeagueCache();
+  const d=await fetchJSON(`${BASE}/stats?stats=season&group=pitching&season=${SEASON}&sortStat=strikeOuts&order=desc&limit=25&sportId=1`);
+  const list=(d.stats?.[0]?.splits||[]).map(s=>{ const k=s.stat?.strikeOuts||0,g=s.stat?.gamesPlayed||s.stat?.gamesPitched||0; return { id:s.player?.id, name:s.player?.fullName||'—', team:getTeamAbbr(s.team?.id,s.team?.abbreviation), teamId:s.team?.id, league:getLeague(s.team?.id), k, games:g, kpg:g>0?(k/g).toFixed(1):'—', hand:null }; });
+  const hands=await Promise.all(list.map(p=>fetchHandedness(p.id)));
+  list.forEach((p,i)=>p.hand=hands[i]);
+  return list;
+}
+async function fetchVenues() {
+  const teamsData=await fetchJSON(`${BASE}/teams?sportId=1&season=${SEASON}&sportIds=1`);
+  const teams=(teamsData.teams||[]).filter(t=>t.sport?.id===1);
+  const [statsData]=await Promise.all([fetchJSON(`${BASE}/stats?stats=season&group=hitting&season=${SEASON}&sportId=1&gameType=R&sitCodes=h&limit=30`)]);
+  const splits=statsData.stats?.[0]?.splits||[];
+  const venueMap={};
+  for (const s of splits) { if(s.team?.id) venueMap[s.team.id]={team:s.team.abbreviation||'—',hr:s.stat?.homeRuns||0}; }
+
+  // Get completed game box scores for accurate venue HR totals
+  const schedData=await fetchJSON(`${BASE}/schedule?sportId=1&season=${SEASON}&gameType=R&startDate=${SEASON}-03-01&endDate=${todayStr()}&hydrate=team,venue,teams`).catch(()=>({dates:[]}));
+  const completedGames=[];
+  for (const de of (schedData.dates||[])) {
+    for (const g of (de.games||[])) {
+      const code=g.status?.statusCode||'', state=g.status?.detailedState||'';
+      const done=['F','FT','FR'].includes(code)||state.startsWith('Final');
+      if (done&&g.venue?.id) completedGames.push({gamePk:g.gamePk,venueId:g.venue.id,venueName:g.venue.name,homeTeamId:g.teams?.home?.team?.id});
+    }
+  }
+  const venueHRMap={};
+  if (completedGames.length) {
+    const BATCH=10;
+    for (let i=0;i<completedGames.length;i+=BATCH) {
+      const batch=completedGames.slice(i,i+BATCH);
+      const results=await Promise.all(batch.map(async cg=>{
+        try { const box=await fetchJSON(`${BASE}/game/${cg.gamePk}/boxscore`); return {...cg,totalHR:(box.teams?.away?.teamStats?.batting?.homeRuns||0)+(box.teams?.home?.teamStats?.batting?.homeRuns||0)}; }
+        catch { return {...cg,totalHR:0}; }
+      }));
+      for (const r of results) venueHRMap[r.venueId]=(venueHRMap[r.venueId]||0)+r.totalHR;
+    }
+  }
+  const result=teams.filter(t=>t.venue?.id&&t.venue?.name).map(t=>({ venueId:t.venue.id, name:t.venue.name, team:t.abbreviation||'—', hr:venueHRMap[t.venue.id]||0 }));
+  return result.sort((a,b)=>b.hr-a.hr);
+}
+async function fetchTodayGames() {
+  const d=await fetchJSON(`${BASE}/schedule?sportId=1&date=${todayStr()}&hydrate=probablePitcher,team,venue,lineups,linescore`);
+  const games=((d.dates||[])[0]?.games||[]);
+  const list=games.map(g=>{
+    const ls=g.linescore||{}, sc=g.status?.statusCode||'', ds=g.status?.detailedState||'', as=g.status?.abstractGameState||'';
+    const isLive=['I','MA','MC'].includes(sc)||ds==='In Progress';
+    const isFinal=['F','FT','FR','O','UR','CR'].includes(sc)||ds.startsWith('Final')||as==='Final';
+    return {
+      gamePk:g.gamePk, time:formatTime(g.gameDate),
+      venue:g.venue?.name||'—', venueId:g.venue?.id,
+      isLive, isFinal, inningHalf:ls.inningHalf||'', inningOrd:ls.currentInningOrdinal||'',
+      awayRuns:ls.teams?.away?.runs??g.teams?.away?.score??null,
+      homeRuns:ls.teams?.home?.runs??g.teams?.home?.score??null,
+      detailedState:ds,
+      away:{ id:g.teams?.away?.team?.id, team:g.teams?.away?.team?.abbreviation||'—', name:g.teams?.away?.team?.name||'—', pitcherId:g.teams?.away?.probablePitcher?.id, pitcherName:g.teams?.away?.probablePitcher?.fullName||null, lineup:(g.teams?.away?.lineup||[]).map(p=>p.id) },
+      home:{ id:g.teams?.home?.team?.id, team:g.teams?.home?.team?.abbreviation||'—', name:g.teams?.home?.team?.name||'—', pitcherId:g.teams?.home?.probablePitcher?.id, pitcherName:g.teams?.home?.probablePitcher?.fullName||null, lineup:(g.teams?.home?.lineup||[]).map(p=>p.id) },
+    };
+  });
+  const pids=[...new Set(list.flatMap(g=>[g.away.pitcherId,g.home.pitcherId]).filter(Boolean))];
+  await Promise.all(pids.map(id=>fetchHandedness(id)));
+  return list;
+}
+
+// ── ANALYZE MATCHUPS ─────────────────────────────────────────────────
+function analyzeMatchups() {
+  const hitterIds=new Set(hitters.map(h=>h.id));
+  const pitcherIds=new Set(hrPitchers.map(p=>p.id));
+  const top10Ids=new Set(venues.slice(0,10).map(v=>v.venueId));
+  const hitterMap=Object.fromEntries(hitters.map((h,i)=>[h.id,{...h,rank:i+1}]));
+  const pitcherMap=Object.fromEntries(hrPitchers.map((p,i)=>[p.id,{...p,rank:i+1}]));
+  const earlySeasonMode=hrPitchers.filter(p=>p.hr>0).length<15;
+  const alerts=[], seen=new Set();
+
+  for (const game of todayGames) {
+    if (game.isFinal||game.isLive) continue;
+    const isTopVenue=top10Ids.has(game.venueId);
+    const venueData=venues.find(v=>v.venueId===game.venueId);
+    const venueRank=venueData?venues.indexOf(venueData)+1:null;
+    const pairs=[
+      {lineupIds:game.away.lineup,pitcherId:game.home.pitcherId,pitcherName:game.home.pitcherName,battingTeam:game.away.team},
+      {lineupIds:game.home.lineup,pitcherId:game.away.pitcherId,pitcherName:game.away.pitcherName,battingTeam:game.home.team},
+    ];
+    for (const pair of pairs) {
+      const isTop25Pitcher=pair.pitcherId&&pitcherIds.has(pair.pitcherId);
+      const pitcher=pair.pitcherId?(isTop25Pitcher?pitcherMap[pair.pitcherId]:{id:pair.pitcherId,name:pair.pitcherName||'TBD',team:'—',hr:0,rank:'—'}):null;
+      const lineupHitters=(pair.lineupIds||[]).filter(id=>hitterIds.has(id)).map(id=>hitterMap[id]);
+      const probableHitters=lineupHitters.length===0?hitters.filter(h=>h.team===pair.battingTeam).slice(0,2).map(h=>hitterMap[h.id]).filter(Boolean):[];
+      const allHitters=lineupHitters.length>0?lineupHitters:probableHitters;
+      const isProbable=lineupHitters.length===0;
+      for (const hitter of allHitters) {
+        const hasPitcher=isTop25Pitcher||earlySeasonMode;
+        const hasVenue=isTopVenue;
+        const categoryCount=[true,hasPitcher&&!!pitcher,hasVenue].filter(Boolean).length;
+        if (categoryCount<2||(!hasPitcher&&!hasVenue)) continue;
+        const key=`${game.gamePk}-${hitter.id}-${pair.pitcherId||'nop'}-${isProbable?'prob':''}`;
+        if (seen.has(key)) continue; seen.add(key);
+        alerts.push({ type:(true&&hasPitcher&&hasVenue)?'triple':'double', game, hitter, pitcher:pitcher||{name:'TBD',rank:'—',hr:0}, venueData, venueRank, probable:isProbable, hasHitter:true, hasPitcher:isTop25Pitcher, hasVenue, earlyseason:!isTop25Pitcher&&earlySeasonMode });
+      }
+      if (isTopVenue&&isTop25Pitcher&&pitcher&&allHitters.length===0) {
+        const key=`${game.gamePk}-venue-pitcher-${pair.pitcherId}`;
+        if (!seen.has(key)) { seen.add(key); alerts.push({type:'double',game,hitter:null,pitcher,venueData,venueRank,probable:true,hasHitter:false,hasPitcher:true,hasVenue:true,venueOnly:true}); }
+      }
+    }
+  }
+  return alerts.sort((a,b)=>(b.type==='triple')-(a.type==='triple'));
+}
+
+// ── LIVE SCORE HTML ──────────────────────────────────────────────────
+function liveScoreHTML(game) {
+  if (game.isLive&&game.awayRuns!==null) {
+    const aw=game.awayRuns>game.homeRuns, hw=game.homeRuns>game.awayRuns;
+    return `<div class="live-score is-live">
+      <div class="score-team"><span class="score-abbr">${game.away.team}</span><span class="score-runs ${aw?'winning':''}">${game.awayRuns}</span></div>
+      <div class="score-middle"><span class="inning-badge live">${game.inningHalf==='Top'?'▲':'▼'} ${game.inningOrd}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent-green)">LIVE</span></div>
+      <div class="score-team"><span class="score-runs ${hw?'winning':''}">${game.homeRuns}</span><span class="score-abbr">${game.home.team}</span></div>
+    </div>`;
+  } else if (game.isFinal) {
+    const aw=(game.awayRuns??0)>(game.homeRuns??0), hw=(game.homeRuns??0)>(game.awayRuns??0);
+    return `<div class="live-score is-final">
+      <div class="score-team"><span class="score-abbr">${game.away.team}</span><span class="score-runs" style="color:${aw?'var(--accent-red)':'var(--text-mid)'}">${game.awayRuns??'—'}</span></div>
+      <div class="score-middle"><span class="inning-badge final">FINAL</span></div>
+      <div class="score-team"><span class="score-runs" style="color:${hw?'var(--accent-red)':'var(--text-mid)'}">${game.homeRuns??'—'}</span><span class="score-abbr">${game.home.team}</span></div>
+    </div>`;
+  } else {
+    return `<div class="live-score" style="justify-content:center;"><span class="inning-badge scheduled">🕐 ${game.time}</span></div>`;
+  }
+}
+
+// ── RENDER ALERTS ────────────────────────────────────────────────────
+function renderAlerts(alerts) {
+  const c=document.getElementById('alertsContainer');
+  if (!alerts.length) { c.innerHTML=`<div class="no-alerts">✓ No threat matchups yet. Check back once lineups post (~3hrs before first pitch).</div>`; return; }
+  c.innerHTML=alerts.map(a=>{
+    const cls=a.type==='triple'?'alert-triple':'alert-double';
+    const pH=a.pitcher?.id?handednessCache[a.pitcher.id]:null;
+    const bH=a.hitter?.id?batHandCache[a.hitter.id]:null;
+    const pB=pH?`<span class="hand-badge ${pH}" style="font-size:10px;width:17px;height:17px;">${pH}</span>`:'';
+    const bB=bH?`<span class="hand-badge ${bH}" style="font-size:10px;width:17px;height:17px;">${bH}</span>`:'';
+    let matchupLine='';
+    if (a.venueOnly) matchupLine=`<div class="alert-matchup"><span class="pitcher">${a.pitcher?.name}</span>${pB}<span class="vs">at</span><span style="color:var(--accent-gold)">${a.game.venue}</span></div>`;
+    else if (a.hitter&&a.pitcher?.name!=='TBD') matchupLine=`<div class="alert-matchup">${bB}<span class="batter">${a.hitter.name}</span><span class="vs">vs</span>${pB}<span class="pitcher">${a.pitcher.name}</span></div>`;
+    else if (a.hitter&&!a.hasPitcher) matchupLine=`<div class="alert-matchup">${bB}<span class="batter">${a.hitter.name}</span><span class="vs">at</span><span style="color:var(--accent-gold)">${a.game.venue}</span></div>`;
+    else matchupLine=`<div class="alert-matchup">${bB}<span class="batter">${a.hitter?.name||'—'}</span><span class="vs">vs</span>${pB}<span class="pitcher">${a.pitcher?.name||'TBD'}</span></div>`;
+    const hTag=a.hitter?`<span class="tag tag-hr">HR Rank #${a.hitter.rank} · ${a.hitter.hr} HR</span>`:'';
+    const pTag=a.hasPitcher&&a.pitcher?.rank!=='—'?`<span class="tag tag-pitcher">Pitcher Rank #${a.pitcher.rank} · ${a.pitcher.hr} HR</span>`:a.earlyseason?`<span class="tag tag-pitcher">Starter</span>`:'';
+    const vTag=a.hasVenue?`<span class="tag tag-venue">Top 10 Venue · #${a.venueRank} · ${a.venueData?.hr||0} HRs</span>`:'';
+    const tTag=a.type==='triple'?`<span class="tag tag-rank">⚡ ALL 3</span>`:'';
+    return `<div class="${cls}">
+      <div class="alert-game">${a.game.away.team} @ ${a.game.home.team} · ${a.game.time}${a.probable?' · Probable':''}</div>
+      ${matchupLine}
+      ${a.type==='triple'?`<div class="alert-venue">📍 ${a.game.venue} — #${a.venueRank} HR Venue</div>`:''}
+      <div class="alert-tags">${hTag}${pTag}${vTag}${tTag}<span class="tag tag-time">${a.game.time}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER GAMES ─────────────────────────────────────────────────────
+async function renderGames(alerts, noHRAlerts) {
+  const container=document.getElementById('gamesContainer');
+  if (!todayGames.length) { container.innerHTML=`<div class="no-alerts">No games scheduled today.</div>`; return; }
+  const hitterIds=new Set(hitters.map(h=>h.id));
+  const hitterMap=Object.fromEntries(hitters.map((h,i)=>[h.id,{...h,rank:i+1}]));
+  const pitcherIds=new Set(hrPitchers.map(p=>p.id));
+  const top10Ids=new Set(venues.slice(0,10).map(v=>v.venueId));
+  const threatMap={};
+  for (const a of alerts) { const pk=a.game.gamePk; if(a.type==='triple') threatMap[pk]='triple'; else if(!threatMap[pk]) threatMap[pk]='double'; }
+  const noHRThreatMap={};
+  for (const a of (noHRAlerts||[])) { const pk=a.game.gamePk; if(a.type==='nohr-triple') noHRThreatMap[pk]='nohr-triple'; else if(!noHRThreatMap[pk]) noHRThreatMap[pk]='nohr-double'; }
+
+  function pitcherLine(game, side) {
+    const p=game[side]; const hand=p.pitcherId?handednessCache[p.pitcherId]:null;
+    const isTop25HR=p.pitcherId&&pitcherIds.has(p.pitcherId);
+    return `<div class="pitcher-line">
+      <div class="pitcher-line-left">${hand?handBadge(hand):''}<div class="pitcher-name-label">${side==='away'?'Away':'Home'} SP: <span>${p.pitcherName||'TBD'}</span></div></div>
+      ${isTop25HR?`<span class="top25-badge" style="background:rgba(230,57,70,0.15);color:var(--accent-red);border-color:rgba(230,57,70,0.3);">TOP25</span>`:''}
+    </div>`;
+  }
+
+  // Render cards immediately with placeholders for leaders
+  container.innerHTML = todayGames.map(game => {
+    const threat=threatMap[game.gamePk];
+    const isTop10V=top10Ids.has(game.venueId);
+    return `<div class="game-card ${threat?threat+'-game':noHRThreatMap[game.gamePk]?noHRThreatMap[game.gamePk]+'-game':''}" onclick="openGameModal(${game.gamePk})">
+      <div class="game-card-header">
+        <div class="game-teams"><span class="away">${game.away.team}</span><span class="at">@</span><span class="home">${game.home.team}</span></div>
+        <div class="game-meta">${game.time} · ${game.venue}${isTop10V?' ⭐':''}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+          ${threat?`<div class="threat-badge ${threat}">${threat==='triple'?'⚡ TRIPLE':'🔶 DOUBLE'}</div>`:''}
+          ${noHRThreatMap[game.gamePk]?`<div class="threat-badge ${noHRThreatMap[game.gamePk]}">${noHRThreatMap[game.gamePk]==='nohr-triple'?'⚡ NO HR TRIPLE':'🛡️ NO HR DOUBLE'}</div>`:''}
+        </div>
+      </div>
+      ${liveScoreHTML(game)}
+      <div class="game-card-body">
+        <div class="team-section"><div class="team-label">${game.away.team} — Top HR</div><div id="leaders-away-${game.gamePk}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim)">Loading...</div></div>
+        <div class="team-section"><div class="team-label">${game.home.team} — Top HR</div><div id="leaders-home-${game.gamePk}" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim)">Loading...</div></div>
+        <div class="pitcher-matchup">${pitcherLine(game,'away')}${pitcherLine(game,'home')}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Now load leaders lazily — one game at a time so we don't flood the proxy
+  for (const game of todayGames) {
+    try {
+      const fetchTeamLeaders = async (teamId) => {
+        if (!teamId) return [];
+        try {
+          const d=await fetchJSON(`${BASE}/stats?stats=season&group=hitting&season=${SEASON}&sortStat=homeRuns&order=desc&limit=3&sportId=1&teamId=${teamId}`);
+          return (d.stats?.[0]?.splits||[]).map(s=>({id:s.player?.id,name:s.player?.fullName||'—',hr:s.stat?.homeRuns||0}));
+        } catch { return []; }
+      };
+
+      const [awayLeaders, homeLeaders] = await Promise.all([
+        fetchTeamLeaders(game.away.id),
+        fetchTeamLeaders(game.home.id),
+      ]);
+
+      function leaderHTML(arr) {
+        return (arr||[]).map(p=>{
+          const isTop25=hitterIds.has(p.id);
+          return `<div class="hitter-row"><div class="hitter-row-name">${p.name}${isTop25?`<span class="top25-badge">#${hitterMap[p.id]?.rank}</span>`:''}</div><div class="hitter-row-hr">${p.hr}HR</div></div>`;
+        }).join('')||`<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim)">No data yet</div>`;
+      }
+
+      const awayEl=document.getElementById(`leaders-away-${game.gamePk}`);
+      const homeEl=document.getElementById(`leaders-home-${game.gamePk}`);
+      if (awayEl) awayEl.innerHTML=leaderHTML(awayLeaders);
+      if (homeEl) homeEl.innerHTML=leaderHTML(homeLeaders);
+
+    } catch(e) {
+      const awayEl=document.getElementById(`leaders-away-${game.gamePk}`);
+      const homeEl=document.getElementById(`leaders-home-${game.gamePk}`);
+      if (awayEl) awayEl.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim)">No data</div>`;
+      if (homeEl) homeEl.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim)">No data</div>`;
+    }
+  }
+}
+
+// ── TIED RANKING HELPER ──────────────────────────────────────────────
+function tiedRanks(list, valKey) {
+  const ranks = [];
+  let rank = 1;
+  for (let i = 0; i < list.length; i++) {
+    if (i > 0 && list[i][valKey] < list[i-1][valKey]) rank = i + 1;
+    ranks.push(rank);
+  }
+  return ranks;
+}
+
+// ── RENDER LEADERBOARDS ──────────────────────────────────────────────
+function renderHitters(alertIds) {
+  const max=hitters[0]?.hr||1;
+  const ranks=tiedRanks(hitters,'hr');
+  document.getElementById('tab-hitters').innerHTML=`<div class="stat-rows-wrap">${hitters.map((p,i)=>{
+    const isAlert=alertIds?.has(p.id);
+    return `<div class="stat-row ${isAlert?'hl-blue':''}">
+      <span class="row-rank">${ranks[i]}</span>
+      ${handBadge(p.hand)||'<span style="width:18px;display:inline-block;"></span>'}
+      <div class="row-info"><div class="row-name">${p.name}${isAlert?'<span class="alert-dot"></span>':''}</div><div class="row-sub"><span class="name-team-tag">${p.team} (${p.league})</span></div></div>
+      <span class="row-val blue">${p.hr}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderPitchers(alertIds) {
+  const max=hrPitchers[0]?.hr||1;
+  const ranks=tiedRanks(hrPitchers,'hr');
+  document.getElementById('tab-pitchers').innerHTML=`<div class="stat-rows-wrap">${hrPitchers.map((p,i)=>{
+    const isAlert=alertIds?.has(p.id);
+    return `<div class="stat-row ${isAlert?'hl-red':''}">
+      <span class="row-rank">${ranks[i]}</span>
+      ${handBadge(p.hand)||'<span style="width:18px;display:inline-block;"></span>'}
+      <div class="row-info"><div class="row-name">${p.name}${isAlert?'<span class="alert-dot"></span>':''}</div><div class="row-sub"><span class="name-team-tag">${p.team} (${p.league})</span></div></div>
+      <span class="row-val red">${p.hr}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderKO() {
+  const ranks=tiedRanks(koPitchers,'k');
+  document.getElementById('tab-ko').innerHTML=`<div class="stat-rows-wrap">${koPitchers.map((p,i)=>`
+    <div class="stat-row">
+      <span class="row-rank">${ranks[i]}</span>
+      ${handBadge(p.hand)||'<span style="width:18px;display:inline-block;"></span>'}
+      <div class="row-info"><div class="row-name">${p.name}</div><div class="row-sub"><span class="name-team-tag">${p.team} (${p.league})</span></div></div>
+      <div style="text-align:right;flex-shrink:0;"><span class="row-val purple">${p.k}</span><div class="row-sub2">${p.kpg}/G</div></div>
+    </div>`).join('')}</div>`;
+}
+
+function renderVenues(alertVenueIds) {
+  const top10=venues.slice(0,10), max=top10[0]?.hr||1;
+  const ranks=tiedRanks(top10,'hr');
+  document.getElementById('tab-venues').innerHTML=`<div class="stat-rows-wrap">${top10.map((v,i)=>{
+    const isAlert=alertVenueIds?.has(v.venueId);
+    return `<div class="stat-row ${isAlert?'hl-gold':''}">
+      <span class="row-rank">${ranks[i]}</span>
+      <div class="row-info"><div class="row-name">${v.name}${isAlert?'<span class="alert-dot"></span>':''}</div><div class="row-sub">${v.team}</div></div>
+      <span class="row-val gold">${v.hr}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderStadiums() {
+  const allRanks=tiedRanks(venues,'hr');
+  document.getElementById('stadiumsList').innerHTML=venues.map((v,i)=>`
+    <div class="stat-row ${i<10?'hl-gold':''}">
+      <span class="row-rank">${allRanks[i]}</span>
+      <div class="row-info"><div class="row-name">${v.name}${i<10?' ⭐':''}</div><div class="row-sub">${v.team}</div></div>
+      <span class="row-val gold">${v.hr}</span>
+    </div>`).join('');
+}
+
+async function fetchTeamHRLeaderboard() {
+  await buildLeagueCache();
+  try {
+    const d2=await fetchJSON(`${BASE}/stats?stats=season&group=hitting&season=${SEASON}&sportId=1&gameType=R&playerPool=ALL&limit=2000`);
+    const splits=d2.stats?.[0]?.splits||[];
+    const teamMap={};
+    for (const s of splits) {
+      const id=s.team?.id; if(!id) continue;
+      if (!teamMap[id]) teamMap[id]={ teamId:id, name:s.team?.name||getTeamAbbr(id,'—'), abbr:getTeamAbbr(id,s.team?.abbreviation||'—'), league:getLeague(id), hr:0 };
+      teamMap[id].hr+=(s.stat?.homeRuns||0);
+    }
+    return Object.values(teamMap).sort((a,b)=>b.hr-a.hr);
+  } catch { return []; }
+}
+
+function renderTeamHR() {
+  const ranks=tiedRanks(teamHRLeaderboard,'hr');
+  document.getElementById('tab-teamhr').innerHTML=`<div class="stat-rows-wrap">${teamHRLeaderboard.map((t,i)=>`
+    <div class="stat-row">
+      <span class="row-rank">${ranks[i]}</span>
+      <div class="row-info"><div class="row-name">${t.name}</div><div class="row-sub"><span class="name-team-tag">${t.abbr} (${t.league})</span></div></div>
+      <span class="row-val" style="color:var(--accent-green);">${t.hr}</span>
+    </div>`).join('')}</div>`;
+}
+
+// ── MODAL ────────────────────────────────────────────────────────────
+function closeModal(e) { if(e.target===document.getElementById('modalOverlay')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+
+// Stadium coords for weather
+const VENUE_COORDS = {
+  'Yankee Stadium':{lat:40.8296,lon:-73.9262,city:'New York, NY'},
+  'Fenway Park':{lat:42.3467,lon:-71.0972,city:'Boston, MA'},
+  'Camden Yards':{lat:39.2838,lon:-76.6218,city:'Baltimore, MD'},
+  'Oriole Park at Camden Yards':{lat:39.2838,lon:-76.6218,city:'Baltimore, MD'},
+  'Tropicana Field':{lat:27.7683,lon:-82.6534,city:'St. Petersburg, FL'},
+  'Rogers Centre':{lat:43.6414,lon:-79.3894,city:'Toronto, ON'},
+  'Guaranteed Rate Field':{lat:41.8300,lon:-87.6338,city:'Chicago, IL'},
+  'Comerica Park':{lat:42.3390,lon:-83.0485,city:'Detroit, MI'},
+  'Kauffman Stadium':{lat:39.0517,lon:-94.4803,city:'Kansas City, MO'},
+  'Target Field':{lat:44.9817,lon:-93.2777,city:'Minneapolis, MN'},
+  'Minute Maid Park':{lat:29.7572,lon:-95.3555,city:'Houston, TX'},
+  'Daikin Park':{lat:29.7572,lon:-95.3555,city:'Houston, TX'},
+  'Angel Stadium':{lat:33.8003,lon:-117.8827,city:'Anaheim, CA'},
+  'Oakland Coliseum':{lat:37.7516,lon:-122.2005,city:'Oakland, CA'},
+  'Sutter Health Park':{lat:38.5802,lon:-121.5085,city:'Sacramento, CA'},
+  'T-Mobile Park':{lat:47.5914,lon:-122.3325,city:'Seattle, WA'},
+  'Globe Life Field':{lat:32.7473,lon:-97.0822,city:'Arlington, TX'},
+  'Truist Park':{lat:33.8908,lon:-84.4678,city:'Atlanta, GA'},
+  'Wrigley Field':{lat:41.9484,lon:-87.6553,city:'Chicago, IL'},
+  'Great American Ball Park':{lat:39.0979,lon:-84.5082,city:'Cincinnati, OH'},
+  'Coors Field':{lat:39.7559,lon:-104.9942,city:'Denver, CO'},
+  'loanDepot park':{lat:25.7781,lon:-80.2197,city:'Miami, FL'},
+  'American Family Field':{lat:43.0280,lon:-87.9712,city:'Milwaukee, WI'},
+  'Citi Field':{lat:40.7571,lon:-73.8458,city:'New York, NY'},
+  'Citizens Bank Park':{lat:39.9061,lon:-75.1665,city:'Philadelphia, PA'},
+  'PNC Park':{lat:40.4469,lon:-80.0057,city:'Pittsburgh, PA'},
+  'Busch Stadium':{lat:38.6226,lon:-90.1928,city:'St. Louis, MO'},
+  'Petco Park':{lat:32.7073,lon:-117.1566,city:'San Diego, CA'},
+  'Oracle Park':{lat:37.7786,lon:-122.3893,city:'San Francisco, CA'},
+  'Nationals Park':{lat:38.8730,lon:-77.0074,city:'Washington, DC'},
+  'Chase Field':{lat:33.4453,lon:-112.0667,city:'Phoenix, AZ'},
+  'Dodger Stadium':{lat:34.0739,lon:-118.2400,city:'Los Angeles, CA'},
+  'Uniqlo Field at Dodger Stadium':{lat:34.0739,lon:-118.2400,city:'Los Angeles, CA'},
+  'Progressive Field':{lat:41.4962,lon:-81.6852,city:'Cleveland, OH'},
+};
+
+function degreesToCompass(deg) { const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']; return dirs[Math.round(deg/22.5)%16]; }
+function windImpact(d) { if(!d) return ''; if(['N','NNE','NE','NNW','NW'].includes(d)) return 'wind-out'; if(['S','SSE','SE','SSW','SW'].includes(d)) return 'wind-in'; return 'wind-cross'; }
+function windLabel(d) { const c=windImpact(d); if(c==='wind-out') return '🟢 Blowing OUT'; if(c==='wind-in') return '🔴 Blowing IN'; return '🟡 Crosswind'; }
+
+async function fetchWeather(venueName) {
+  try {
+    let coords=VENUE_COORDS[venueName];
+    if (!coords) { const key=Object.keys(VENUE_COORDS).find(k=>venueName.toLowerCase().includes(k.toLowerCase())||k.toLowerCase().includes(venueName.toLowerCase())); if(key) coords=VENUE_COORDS[key]; }
+    if (!coords) return null;
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,apparent_temperature,weathercode,windspeed_10m,winddirection_10m,relativehumidity_2m&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=auto`);
+    if (!r.ok) throw new Error();
+    const d=await r.json(); const cur=d.current; if(!cur) return null;
+    const WMO={0:'Clear',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Fog',51:'Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',71:'Snow',80:'Showers',95:'Thunderstorm'};
+    const windDir=degreesToCompass(cur.winddirection_10m);
+    return { temp:Math.round(cur.temperature_2m)+'°F', feels:Math.round(cur.apparent_temperature)+'°F', desc:WMO[cur.weathercode]||'Unknown', wind:Math.round(cur.windspeed_10m)+' mph', windDir, humidity:cur.relativehumidity_2m+'%', city:coords.city };
+  } catch { return null; }
+}
+
+async function fetchPitcherSeasonStats(id) {
+  try { const d=await fetchJSON(`${BASE}/people/${id}/stats?stats=season&group=pitching&season=${SEASON}&sportId=1`); return d.stats?.[0]?.splits?.[0]?.stat||null; } catch { return null; }
+}
+async function fetchPitcherRecentStarts(id) {
+  try { const d=await fetchJSON(`${BASE}/people/${id}/stats?stats=gameLog&group=pitching&season=${SEASON}&sportId=1&gameType=R&limit=3`); return (d.stats?.[0]?.splits||[]).slice(0,3).map(s=>({date:s.date||'',opponent:s.opponent?.abbreviation||'—',ip:s.stat?.inningsPitched||'0',er:s.stat?.earnedRuns??'—',k:s.stat?.strikeOuts??'—',hr:s.stat?.homeRuns??'—'})); } catch { return []; }
+}
+
+async function openGameModal(gamePk) {
+  const game=todayGames.find(g=>g.gamePk===gamePk); if(!game) return;
+  document.getElementById('modalTitle').textContent=`${game.away.team} @ ${game.home.team}`;
+  document.getElementById('modalSubtitle').textContent=`${game.time} · ${game.venue}`;
+  document.getElementById('modalBody').innerHTML=`<div class="modal-loading">⚾ LOADING...</div>`;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+
+  try {
+    const [boxData,awayPS,homePS,awayRS,homeRS,weather,linescoreData]=await Promise.all([
+      fetchJSON(`${BASE}/game/${gamePk}/boxscore`).catch(()=>null),
+      game.away.pitcherId?fetchPitcherSeasonStats(game.away.pitcherId).catch(()=>null):Promise.resolve(null),
+      game.home.pitcherId?fetchPitcherSeasonStats(game.home.pitcherId).catch(()=>null):Promise.resolve(null),
+      game.away.pitcherId?fetchPitcherRecentStarts(game.away.pitcherId).catch(()=>[]):Promise.resolve([]),
+      game.home.pitcherId?fetchPitcherRecentStarts(game.home.pitcherId).catch(()=>[]):Promise.resolve([]),
+      fetchWeather(game.venue).catch(()=>null),
+      fetchJSON(`${BASE}/game/${gamePk}/linescore`).catch(()=>null),
+    ]);
+
+    const awayLineup=boxData?.teams?.away?.battingOrder||[];
+    const homeLineup=boxData?.teams?.home?.battingOrder||[];
+    const awayPlayers=boxData?.teams?.away?.players||{};
+    const homePlayers=boxData?.teams?.home?.players||{};
+    const hitterIds=new Set(hitters.map(h=>h.id));
+    const hitterMap=Object.fromEntries(hitters.map((h,i)=>[h.id,{...h,rank:i+1}]));
+
+    // Fetch player season stats
+    const allIds=[...new Set([...awayLineup,...homeLineup])];
+    const playerStats={};
+    await Promise.all(allIds.map(async id=>{
+      try { const d=await fetchJSON(`${BASE}/people/${id}/stats?stats=season&group=hitting&season=${SEASON}&sportId=1`); const s=d.stats?.[0]?.splits?.[0]?.stat; if(s) playerStats[id]={avg:s.avg||'.000',hits:s.hits||0,hr:s.homeRuns||0}; } catch{}
+    }));
+
+    // Weather
+    let weatherHTML='';
+    if (weather) {
+      const wCls=windImpact(weather.windDir);
+      weatherHTML=`<div class="modal-section">
+        <div class="modal-section-title">🌤 Weather — ${weather.city} <span style="font-size:8px;color:var(--text-dim)">(CURRENT)</span></div>
+        <div class="info-pills">
+          <div class="info-pill"><div class="info-pill-label">Temp</div><div class="info-pill-val">${weather.temp}</div><div class="info-pill-sub">Feels ${weather.feels}</div></div>
+          <div class="info-pill"><div class="info-pill-label">Conditions</div><div class="info-pill-val" style="font-size:14px;font-family:'IBM Plex Sans',sans-serif;">${weather.desc}</div><div class="info-pill-sub">${weather.humidity} humidity</div></div>
+          <div class="info-pill"><div class="info-pill-label">Wind</div><div class="info-pill-val ${wCls}">${weather.wind}</div><div class="info-pill-sub ${wCls}">${weather.windDir} · ${windLabel(weather.windDir)}</div></div>
+        </div>
+      </div>`;
+    }
+
+    // Box score
+    let boxHTML='';
+    const innings=linescoreData?.innings||[];
+    if ((game.isLive||game.isFinal)&&innings.length) {
+      const aR=boxData?.teams?.away?.teamStats?.batting?.runs??game.awayRuns??'—';
+      const hR=boxData?.teams?.home?.teamStats?.batting?.runs??game.homeRuns??'—';
+      const aH=boxData?.teams?.away?.teamStats?.batting?.hits??'—';
+      const hH=boxData?.teams?.home?.teamStats?.batting?.hits??'—';
+      const aE=boxData?.teams?.away?.teamStats?.fielding?.errors??'—';
+      const hE=boxData?.teams?.home?.teamStats?.fielding?.errors??'—';
+      boxHTML=`<div class="modal-section">
+        <div class="modal-section-title">📊 Box Score — ${game.isFinal?'Final':'In Progress'}</div>
+        <div style="overflow-x:auto;">
+          <table class="box-table">
+            <thead><tr><th>TEAM</th>${innings.map((_,i)=>`<th>${i+1}</th>`).join('')}<th class="box-r">R</th><th>H</th><th>E</th></tr></thead>
+            <tbody>
+              <tr><td>${game.away.team}</td>${innings.map(inn=>`<td>${inn.away?.runs??'—'}</td>`).join('')}<td class="box-r">${aR}</td><td>${aH}</td><td>${aE}</td></tr>
+              <tr><td>${game.home.team}</td>${innings.map(inn=>`<td>${inn.home?.runs??'—'}</td>`).join('')}<td class="box-r">${hR}</td><td>${hH}</td><td>${hE}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+    }
+
+    // Pitchers
+    function pitcherCard(side,stats,recent) {
+      const p=game[side]; const hand=handednessCache[p.pitcherId];
+      if (!p.pitcherName) return `<div class="pitcher-exp-card"><div class="pitcher-exp-name">TBD</div><div class="pitcher-exp-team">${side==='away'?'Away':'Home'} Starter</div></div>`;
+      const statRow=stats?`<div class="stat-pills"><div class="stat-pill"><span class="lbl">ERA</span>${stats.era||'—'}</div><div class="stat-pill"><span class="lbl">WHIP</span>${stats.whip||'—'}</div><div class="stat-pill"><span class="lbl">K</span>${stats.strikeOuts||0}</div><div class="stat-pill"><span class="lbl">HR</span>${stats.homeRuns||0}</div><div class="stat-pill"><span class="lbl">GS</span>${stats.gamesStarted||0}</div></div>`:`<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim)">No stats yet</div>`;
+      const recRow=recent?.length?`<div class="recent-starts"><div class="recent-label">Last ${recent.length} starts</div>${recent.map(r=>`<div class="recent-start-row">${r.date} vs ${r.opponent} — ${r.ip}IP · ${r.er}ER · ${r.k}K · ${r.hr}HR</div>`).join('')}</div>`:'';
+      return `<div class="pitcher-exp-card"><div class="pitcher-exp-name">${hand?handBadge(hand):''} ${p.pitcherName}</div><div class="pitcher-exp-team">${p.team} · ${side==='away'?'Away':'Home'} Starter</div>${statRow}${recRow}</div>`;
+    }
+    const pitchersHTML=`<div class="modal-section"><div class="modal-section-title">⚾ Starting Pitchers</div><div class="pitcher-cards">${pitcherCard('away',awayPS,awayRS)}${pitcherCard('home',homePS,homeRS)}</div></div>`;
+
+    // Build lineup data for both teams — store globally so toggle can access it
+    window._modalLineupData = {
+      game, awayLineup, homeLineup, awayPlayers, homePlayers,
+      playerStats, hitterIds, hitterMap, boxData
+    };
+
+    // Build lineup HTML for one team
+    function buildLineupHTML(lineup, players, side) {
+      if (!lineup?.length) return `<div class="no-lineup">Lineup not yet posted</div>`;
+      const isAway = side === 'away';
+      const teamData = isAway ? boxData?.teams?.away : boxData?.teams?.home;
+      const gamePlayers = teamData?.players || {};
+
+      return `<table class="lineup-table">
+        <thead>
+          <tr>
+            <th>PLAYER</th>
+            <th class="today-col">AB</th>
+            <th class="today-col">H</th>
+            <th class="today-col">HR</th>
+            <th class="season-col">AVG</th>
+            <th class="season-col">HR</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lineup.map((id,i)=>{
+            const pid=`ID${id}`;
+            const p=players[pid]||gamePlayers[pid];
+            const name=p?.person?.fullName||`#${id}`;
+            const pos=p?.position?.abbreviation||'—';
+            const isTop25=hitterIds.has(id);
+            const hitter=hitterMap[id];
+            const bh=batHandCache[id];
+            const season=playerStats[id];
+            // Today's game stats from box score
+            const gp=gamePlayers[pid]?.stats?.batting;
+            const todayAB=gp?.atBats??'—';
+            const todayH=gp?.hits??'—';
+            const todayHR=gp?.homeRuns??'—';
+            return `<tr>
+              <td>
+                <div class="player-cell">
+                  <span class="player-num">${i+1}</span>
+                  ${bh?`<span class="hand-badge ${bh}" style="font-size:9px;width:15px;height:15px;">${bh}</span>`:''}
+                  <span class="player-name-cell">${name}${isTop25?`<span class="top25-badge">#${hitter?.rank}</span>`:''}</span>
+                </div>
+              </td>
+              <td class="today-val">${todayAB}</td>
+              <td class="today-val">${todayH}</td>
+              <td class="today-val">${todayHR}</td>
+              <td class="season-val">${season?.avg||'—'}</td>
+              <td class="season-val">${season?.hr??'—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+    }
+
+    // Toggle function — switches between teams
+    window.switchLineupTeam = function(side) {
+      const d = window._modalLineupData;
+      if (!d) return;
+      document.querySelectorAll('.team-toggle-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelector(`.team-toggle-btn[data-side="${side}"]`).classList.add('active');
+      const lineup = side==='away' ? d.awayLineup : d.homeLineup;
+      const players = side==='away' ? d.awayPlayers : d.homePlayers;
+      document.getElementById('lineupContent').innerHTML = buildLineupHTML(lineup, players, side);
+    };
+
+    const lineupsHTML=`<div class="modal-section">
+      <div class="modal-section-title">📋 Lineup — 🟢 Today · 🔵 Season</div>
+      <div class="team-toggle">
+        <button class="team-toggle-btn active" data-side="away" onclick="switchLineupTeam('away')">${game.away.team}</button>
+        <button class="team-toggle-btn" data-side="home" onclick="switchLineupTeam('home')">${game.home.team}</button>
+      </div>
+      <div id="lineupContent">${buildLineupHTML(awayLineup, awayPlayers, 'away')}</div>
+    </div>`;
+
+    document.getElementById('modalBody').innerHTML=weatherHTML+boxHTML+pitchersHTML+lineupsHTML;
+  } catch(e) {
+    console.error(e);
+    document.getElementById('modalBody').innerHTML=`<div class="modal-loading" style="color:var(--accent-red)">⚠ Could not load game data.</div>`;
+  }
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();});
+
+// ── SCORE REFRESH (60s) ──────────────────────────────────────────────
+setInterval(async()=>{
+  if (!todayGames.length||!todayGames.some(g=>g.isLive)) return;
+  try {
+    const d=await fetchJSON(`${BASE}/schedule?sportId=1&date=${todayStr()}&hydrate=linescore,team`);
+    for (const g of ((d.dates||[])[0]?.games||[])) {
+      const match=todayGames.find(tg=>tg.gamePk===g.gamePk); if(!match) continue;
+      const ls=g.linescore||{}, sc=g.status?.statusCode||'', ds=g.status?.detailedState||'', as=g.status?.abstractGameState||'';
+      match.isLive=['I','MA','MC'].includes(sc)||ds==='In Progress';
+      match.isFinal=['F','FT','FR','O','UR','CR'].includes(sc)||ds.startsWith('Final')||as==='Final';
+      match.inningHalf=ls.inningHalf||''; match.inningOrd=ls.currentInningOrdinal||'';
+      match.awayRuns=ls.teams?.away?.runs??g.teams?.away?.score??match.awayRuns;
+      match.homeRuns=ls.teams?.home?.runs??g.teams?.home?.score??match.homeRuns;
+    }
+    document.querySelectorAll('.game-card').forEach((card,i)=>{
+      const game=todayGames[i]; if(!game) return;
+      const ex=card.querySelector('.live-score'); if(ex) ex.outerHTML=liveScoreHTML(game);
+    });
+    const freshAlerts=analyzeMatchups(); renderAlerts(freshAlerts);
+  } catch{}
+},60000);
+
+// ── MAIN ─────────────────────────────────────────────────────────────
+async function initDashboard() {
+  document.getElementById('refreshBtn').disabled=true;
+  setStatus('loading','LOADING');
+  const now=new Date();
+  document.getElementById('todayDate').textContent=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+
+  const safetyTimer = setTimeout(()=>{ hideLoading(); setStatus('error','ERROR'); }, 45000);
+
+  const noData=`<div class="no-alerts">⏳ Data will appear once the season begins.</div>`;
+
+  try {
+    setProgress(8,'HITTER STATS...');
+    try { hitters=await fetchHitters(); } catch(e) { hitters=[]; }
+
+    setProgress(18,'HR PITCHERS...');
+    try { hrPitchers=await fetchHRPitchers(); } catch(e) { hrPitchers=[]; }
+
+    setProgress(28,'STRIKEOUT LEADERS...');
+    try { koPitchers=await fetchKOPitchers(); } catch(e) { koPitchers=[]; }
+
+    setProgress(38,'VENUE TOTALS...');
+    try { venues=await fetchVenues(); } catch(e) { venues=[]; }
+
+    setProgress(46,'TEAM HR TOTALS...');
+    try { teamHRLeaderboard=await fetchTeamHRLeaderboard(); } catch(e) { teamHRLeaderboard=[]; }
+
+    setProgress(50,'TODAY\'S SCHEDULE...');
+    try { todayGames=await fetchTodayGames(); } catch(e) { todayGames=[]; }
+
+    setProgress(60,'NO HR PITCHERS...');
+    try { const r=await fetchNoHRPitchers(); noHRPitchersAL=r.AL; noHRPitchersNL=r.NL; } catch(e) { noHRPitchersAL=[]; noHRPitchersNL=[]; }
+
+    setProgress(70,'LOW HR TEAMS...');
+    try { noHRTeams=await fetchNoHRTeams(); } catch(e) { noHRTeams=[]; }
+
+    setProgress(80,'ANALYZING MATCHUPS...');
+    const alerts=analyzeMatchups();
+    const noHRAlerts=analyzeNoHRMatchups();
+    const alertHitterIds=new Set(alerts.map(a=>a.hitter?.id).filter(Boolean));
+    const alertPitcherIds=new Set(alerts.map(a=>a.pitcher?.id).filter(Boolean));
+    const alertVenueIds=new Set(alerts.filter(a=>a.type==='triple').map(a=>a.game.venueId));
+
+    setProgress(88,'RENDERING...');
+    if (hitters.length)    renderHitters(alertHitterIds);   else document.getElementById('tab-hitters').innerHTML=noData;
+    if (hrPitchers.length) renderPitchers(alertPitcherIds); else document.getElementById('tab-pitchers').innerHTML=noData;
+    if (koPitchers.length) renderKO();                      else document.getElementById('tab-ko').innerHTML=noData;
+    if (venues.length)     { renderVenues(alertVenueIds); renderStadiums(); }
+    else { document.getElementById('tab-venues').innerHTML=noData; document.getElementById('stadiumsList').innerHTML=noData; }
+
+    if (teamHRLeaderboard.length) renderTeamHR();
+    else document.getElementById('tab-teamhr').innerHTML=noData;
+
+    renderAlerts(alerts);
+    renderNoHRAlerts(noHRAlerts);
+
+    setProgress(95,'GAME CARDS...');
+    await renderGames(alerts, noHRAlerts);
+
+    setProgress(100,'DONE');
+
+    if (now.getMonth()+1<=4) {
+      const n=document.getElementById('seasonNote');
+      n.textContent=`ℹ️ Early season — leaderboards filling in daily.`;
+      n.classList.add('visible');
+    }
+
+    document.getElementById('lastUpdated').textContent=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    setStatus('','LIVE');
+
+  } catch(e) {
+    console.error('Init error:', e);
+    setStatus('error','ERROR');
+    document.getElementById('gamesContainer').innerHTML=`<div class="no-alerts" style="color:var(--accent-red)">⚠ Could not load data. Check your connection and tap ↻ to retry.</div>`;
+  }
+
+  clearTimeout(safetyTimer);
+  hideLoading();
+  document.getElementById('refreshBtn').disabled=false;
+}
+
+setInterval(initDashboard, 4*60*60*1000);
+if ('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+initDashboard();
+</script>
+</body>
+</html>
