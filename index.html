@@ -10,31 +10,38 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0c0f;
-    --surface: #111318;
-    --surface2: #181c23;
-    --border: #1e2530;
-    --accent-red: #e63946;
+    --bg: #0d0f1a;
+    --surface: #12152a;
+    --surface2: #1a1f38;
+    --border: #252a45;
+    --accent-red: #c41e3a;
+    --accent-red-bright: #e8354f;
     --accent-orange: #f4a261;
     --accent-gold: #ffd60a;
     --accent-blue: #4cc9f0;
     --accent-purple: #c77dff;
     --accent-green: #4ade80;
-    --text: #e8eaf0;
+    --text: #f0ebe0;
     --text-dim: #6b7280;
-    --text-mid: #9ca3af;
+    --text-mid: #a89f8c;
     --triple-glow: 0 0 20px rgba(255,214,10,0.25);
+    --pinstripe: repeating-linear-gradient(
+      90deg, transparent, transparent 39px,
+      rgba(255,255,255,0.015) 39px,
+      rgba(255,255,255,0.015) 40px
+    );
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
     background: var(--bg);
+    background-image: var(--pinstripe);
     color: var(--text);
     font-family: 'IBM Plex Sans', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
-    padding-bottom: 80px; /* space for bottom nav */
+    padding-bottom: 80px;
   }
 
   /* ── LOADING ── */
@@ -44,23 +51,24 @@
     transition: opacity 0.5s ease;
   }
   .loading-screen.hidden { opacity: 0; pointer-events: none; }
-  .loading-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 6px; }
+  .loading-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 6px; color: var(--text); }
   .loading-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent-red); letter-spacing: 2px; }
   .loading-status { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
   .loading-bar-wrap { width: 240px; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
-  .loading-bar-fill { height: 100%; background: var(--accent-blue); border-radius: 1px; width: 0%; transition: width 0.4s ease; }
+  .loading-bar-fill { height: 100%; background: var(--accent-red); border-radius: 1px; width: 0%; transition: width 0.4s ease; }
 
   /* ── HEADER ── */
   header {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(10,12,15,0.97);
+    background: linear-gradient(135deg, #0d0f1a 0%, #12152a 100%);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--accent-red);
+    box-shadow: 0 2px 16px rgba(196,30,58,0.15);
     padding: 12px 16px;
     display: flex; align-items: center; justify-content: space-between;
   }
   .logo { display: flex; align-items: baseline; gap: 8px; }
-  .logo-main { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; }
+  .logo-main { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; color: var(--text); }
   .logo-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--accent-red); letter-spacing: 2px; }
   .header-right { display: flex; align-items: center; gap: 10px; }
   .live-dot { display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent-green); }
@@ -73,18 +81,19 @@
 
   .refresh-btn {
     font-family: 'IBM Plex Mono', monospace; font-size: 16px;
-    background: transparent; border: 1px solid var(--border);
-    color: var(--text-mid); border-radius: 6px; cursor: pointer;
+    background: transparent; border: 1px solid var(--accent-red);
+    color: var(--accent-red); border-radius: 6px; cursor: pointer;
     padding: 6px 10px; transition: all 0.2s;
   }
+  .refresh-btn:active { background: var(--accent-red); color: #fff; }
   .refresh-btn:disabled { opacity: .4; }
 
   /* ── BOTTOM NAV ── */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-    background: rgba(10,12,15,0.98);
+    background: linear-gradient(135deg, #0d0f1a 0%, #12152a 100%);
     backdrop-filter: blur(12px);
-    border-top: 1px solid var(--border);
+    border-top: 2px solid var(--accent-red);
     display: flex;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -96,8 +105,8 @@
     transition: color 0.2s; text-transform: uppercase;
   }
   .nav-btn .nav-icon { font-size: 18px; line-height: 1; }
-  .nav-btn.active { color: var(--accent-blue); }
-  .nav-btn.active .nav-icon { filter: drop-shadow(0 0 4px var(--accent-blue)); }
+  .nav-btn.active { color: var(--accent-red); }
+  .nav-btn.active .nav-icon { filter: drop-shadow(0 0 4px rgba(196,30,58,0.5)); }
 
   /* ── PAGES ── */
   .page { display: none; padding: 16px; }
@@ -165,7 +174,9 @@
 
   /* ── GAME CARDS (mobile — vertical stack) ── */
   .game-card {
-    background: var(--surface); border: 1px solid var(--border);
+    background: linear-gradient(160deg, #12152a 0%, #0d0f1a 100%);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent-red);
     border-radius: 12px; margin-bottom: 12px; overflow: hidden;
     cursor: pointer; transition: border-color 0.2s;
     -webkit-tap-highlight-color: transparent;
@@ -192,11 +203,11 @@
     50%{ border-color: rgba(199,125,255,0.9); box-shadow: 0 0 10px rgba(199,125,255,0.2); }
   }
 
-  .game-card-header { padding: 12px 14px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .game-card-header { padding: 12px 14px 10px; background: rgba(196,30,58,0.05); border-bottom: 1px solid var(--border); }
   .game-teams { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
   .game-teams .away { color: var(--text-mid); }
   .game-teams .home { color: var(--text); }
-  .game-teams .at { color: var(--text-dim); font-size: 14px; }
+  .game-teams .at { color: var(--accent-red); font-size: 14px; }
   .game-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
   .threat-badge { display: inline-block; font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 1px; padding: 2px 8px; border-radius: 3px; margin-top: 5px; }
   .threat-badge.triple { background: var(--accent-gold); color: #000; }
@@ -223,9 +234,9 @@
   .pitcher-name-label span { font-weight: 600; color: var(--text); }
 
   /* Live score */
-  .live-score { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface2); border-top: 1px solid var(--border); }
-  .live-score.is-live { background: rgba(74,222,128,0.04); }
-  .live-score.is-final { background: rgba(230,57,70,0.04); }
+  .live-score { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(196,30,58,0.04); border-top: 1px solid var(--border); }
+  .live-score.is-live { background: rgba(74,222,128,0.04); border-top-color: rgba(74,222,128,0.2); }
+  .live-score.is-final { background: rgba(196,30,58,0.06); border-top-color: rgba(196,30,58,0.2); }
   .score-team { display: flex; align-items: center; gap: 10px; }
   .score-abbr { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--text-mid); }
   .score-runs { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--text); line-height: 1; }
@@ -233,13 +244,13 @@
   .score-middle { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .inning-badge { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 3px; white-space: nowrap; }
   .inning-badge.live { background: rgba(74,222,128,0.15); color: var(--accent-green); border: 1px solid rgba(74,222,128,0.3); animation: pulse 2s ease-in-out infinite; }
-  .inning-badge.final { background: rgba(230,57,70,0.15); color: var(--accent-red); border: 1px solid rgba(230,57,70,0.4); }
+  .inning-badge.final { background: rgba(196,30,58,0.15); color: var(--accent-red-bright); border: 1px solid rgba(196,30,58,0.4); }
   .inning-badge.scheduled { background: rgba(76,201,240,0.08); color: var(--accent-blue); border: 1px solid rgba(76,201,240,0.2); }
 
   /* ── LEADERBOARD TABS ── */
   .tab-bar {
-    display: flex; background: var(--surface2);
-    border: 1px solid var(--border); border-radius: 10px;
+    display: flex; background: var(--surface);
+    border: 1px solid var(--border); border-top: 2px solid var(--accent-red); border-radius: 10px;
     padding: 4px; gap: 4px; margin-bottom: 14px;
   }
   .tab-btn {
@@ -249,38 +260,59 @@
     background: transparent; color: var(--text-dim); cursor: pointer;
     transition: all 0.2s; line-height: 1.3; text-align: center;
   }
-  .tab-btn.active { background: var(--surface); color: var(--text); }
-  .tab-btn.active.blue   { color: var(--accent-blue); }
-  .tab-btn.active.red    { color: var(--accent-red); }
-  .tab-btn.active.gold   { color: var(--accent-gold); }
-  .tab-btn.active.purple { color: var(--accent-purple); }
+  .tab-btn.active { background: var(--surface2); color: var(--text); border-bottom: 2px solid var(--accent-red); }
+  .tab-btn.active.blue   { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+  .tab-btn.active.red    { color: var(--accent-red-bright); border-bottom-color: var(--accent-red); }
+  .tab-btn.active.gold   { color: var(--accent-gold); border-bottom-color: var(--accent-gold); }
+  .tab-btn.active.purple { color: var(--accent-purple); border-bottom-color: var(--accent-purple); }
 
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
+  .stat-rows-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); border-top: 2px solid var(--accent-red); }
+  .stat-row.hl-top-venue { background: rgba(255,214,10,0.06) !important; border-left: 2px solid var(--accent-gold) !important; animation: mobileVenueTop 2.5s ease-in-out infinite; }
+  .stat-row.hl-bottom-venue { background: rgba(199,125,255,0.06) !important; border-left: 2px solid var(--accent-purple) !important; animation: mobileVenueBot 2.5s ease-in-out infinite; }
+  @keyframes mobileVenueTop {
+    0%,100%{ background: rgba(255,214,10,0.04); }
+    50%{ background: rgba(255,214,10,0.1); }
+  }
+  @keyframes mobileVenueBot {
+    0%,100%{ background: rgba(199,125,255,0.04); }
+    50%{ background: rgba(199,125,255,0.1); }
+  }
+
   /* ── STAT ROWS ── */
   .stat-row {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px; border-bottom: 1px solid rgba(30,37,48,0.6);
+    padding: 10px 14px; border-bottom: 1px solid rgba(37,42,69,0.6);
     background: var(--surface); border-radius: 0;
     animation: rowIn 0.25s ease forwards; opacity: 0;
+    border-left: 2px solid transparent; transition: border-left-color 0.15s;
   }
   .stat-row:first-child { border-radius: 10px 10px 0 0; }
   .stat-row:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
   .stat-row:only-child { border-radius: 10px; }
+  .stat-row:hover { border-left-color: var(--accent-red); background: rgba(196,30,58,0.04); }
   @keyframes rowIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
   .stat-rows-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
 
-  .row-rank { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); width: 22px; flex-shrink: 0; }
+  .row-rank { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent-red); width: 22px; flex-shrink: 0; font-weight: 600; }
   .row-info { flex: 1; min-width: 0; }
   .row-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
   .row-sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 1px; }
   .row-val { font-family: 'Bebas Neue', sans-serif; font-size: 24px; line-height: 1; flex-shrink: 0; }
   .row-val.blue   { color: var(--accent-blue); }
-  .row-val.red    { color: var(--accent-red); }
+  .row-val.red    { color: var(--accent-red-bright); }
   .row-val.gold   { color: var(--accent-gold); }
   .row-val.purple { color: var(--accent-purple); }
   .row-sub2 { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-mid); text-align: right; }
+
+  .page-title {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    letter-spacing: 3px; color: var(--text-mid); text-transform: uppercase;
+    margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .page-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(196,30,58,0.4), transparent); }
 
   .alert-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-gold); margin-left: 4px; vertical-align: middle; animation: pulse 2s ease-in-out infinite; }
   .name-team-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); font-weight: 400; }
@@ -312,8 +344,9 @@
 
   .modal {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--surface); border-radius: 20px 20px 0 0;
-    border-top: 1px solid var(--border);
+    background: linear-gradient(160deg, #12152a 0%, #0d0f1a 100%);
+    border-radius: 20px 20px 0 0;
+    border-top: 3px solid var(--accent-red);
     max-height: 90vh; overflow-y: auto;
     transform: translateY(100%); transition: transform 0.3s ease;
     padding-bottom: env(safe-area-inset-bottom, 16px);
@@ -321,15 +354,16 @@
   .modal-overlay.open .modal { transform: translateY(0); }
   .modal::-webkit-scrollbar { display: none; }
 
-  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 0; }
+  .modal-handle { width: 40px; height: 4px; background: var(--accent-red); border-radius: 2px; margin: 12px auto 0; opacity: 0.5; }
   .modal-header { padding: 14px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; }
-  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; }
-  .modal-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 3px; }
-  .modal-close { font-size: 18px; color: var(--text-dim); background: none; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; color: var(--text); }
+  .modal-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-mid); margin-top: 3px; }
+  .modal-close { font-size: 18px; color: var(--text-dim); background: none; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .modal-close:active { color: var(--accent-red); border-color: var(--accent-red); }
   .modal-body { padding: 16px 20px 24px; }
 
   .modal-section { margin-bottom: 20px; }
-  .modal-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .modal-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--accent-red); text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(196,30,58,0.3); }
 
   /* Weather pills */
   .info-pills { display: flex; gap: 8px; }
@@ -547,7 +581,7 @@
   <div class="tab-bar">
     <button class="tab-btn active blue" onclick="switchTab('hitters')">HR<br>Hitters</button>
     <button class="tab-btn red"         onclick="switchTab('pitchers')">HR<br>Allowed</button>
-    <button class="tab-btn gold"        onclick="switchTab('venues')">Top 10<br>Venues</button>
+    <button class="tab-btn gold"        onclick="switchTab('venues')">All 30<br>Venues</button>
     <button class="tab-btn purple"      onclick="switchTab('ko')">K<br>Pitchers</button>
     <button class="tab-btn" style="color:var(--accent-green);" onclick="switchTab('teamhr')">Team<br>HR</button>
   </div>
@@ -630,7 +664,7 @@ async function fetchNoHRPitchers() {
   }));
   const hands=await Promise.all(all.map(p=>fetchHandedness(p.id)));
   all.forEach((p,i)=>p.hand=hands[i]);
-  return { AL:all.filter(p=>p.league==='A').slice(0,10), NL:all.filter(p=>p.league==='N').slice(0,10) };
+  return { AL:all.filter(p=>p.league==='A').slice(0,20), NL:all.filter(p=>p.league==='N').slice(0,20) };
 }
 
 async function fetchNoHRTeams() {
@@ -649,8 +683,8 @@ async function fetchNoHRTeams() {
 }
 
 function analyzeNoHRMatchups() {
-  const bottom5VenueIds=new Set(venues.slice().reverse().slice(0,5).map(v=>v.venueId));
-  const bottom5Venues=venues.slice().reverse().slice(0,5);
+  const bottom10VenueIds=new Set(venues.slice().reverse().slice(0,10).map(v=>v.venueId));
+  const bottom10Venues=venues.slice().reverse().slice(0,10);
   const noHRPitcherIds=new Set([...noHRPitchersAL,...noHRPitchersNL].map(p=>p.id));
   const noHRPitcherMap=Object.fromEntries([...noHRPitchersAL,...noHRPitchersNL].map(p=>[p.id,p]));
   const noHRTeamAbbrs=new Set(noHRTeams.map(t=>t.abbr));
@@ -658,25 +692,39 @@ function analyzeNoHRMatchups() {
 
   for (const game of todayGames) {
     if (game.isFinal||game.isLive) continue;
-    const isBottomVenue=bottom5VenueIds.has(game.venueId);
-    const venueData=bottom5Venues.find(v=>v.venueId===game.venueId);
-    const pairs=[
-      { pitcherId:game.home.pitcherId, pitcherName:game.home.pitcherName, battingTeamAbbr:game.away.team },
-      { pitcherId:game.away.pitcherId, pitcherName:game.away.pitcherName, battingTeamAbbr:game.home.team },
+    const isBottomVenue=bottom10VenueIds.has(game.venueId);
+    const venueData=bottom10Venues.find(v=>v.venueId===game.venueId);
+    const venueBottomRank=venueData?bottom10Venues.indexOf(venueData)+1:null;
+
+    const awayIsNoHRTeam=noHRTeamAbbrs.has(game.away.team);
+    const homeIsNoHRTeam=noHRTeamAbbrs.has(game.home.team);
+    const awayPitcherNoHR=game.away.pitcherId&&noHRPitcherIds.has(game.away.pitcherId);
+    const homePitcherNoHR=game.home.pitcherId&&noHRPitcherIds.has(game.home.pitcherId);
+    const bothPitchersNoHR=awayPitcherNoHR&&homePitcherNoHR;
+
+    const battingPairs=[
+      { battingTeam:game.away.team, isNoHRTeam:awayIsNoHRTeam },
+      { battingTeam:game.home.team, isNoHRTeam:homeIsNoHRTeam },
     ];
-    for (const pair of pairs) {
-      const isNoHRPitcher=pair.pitcherId&&noHRPitcherIds.has(pair.pitcherId);
-      const pitcher=isNoHRPitcher?noHRPitcherMap[pair.pitcherId]:null;
-      const isNoHRTeam=noHRTeamAbbrs.has(pair.battingTeamAbbr);
-      if (!isNoHRPitcher&&!isBottomVenue) continue;
-      const count=[isBottomVenue,isNoHRPitcher,isNoHRTeam].filter(Boolean).length;
-      if (count<2) continue;
-      const key=`nohr-${game.gamePk}-${pair.pitcherId||'nop'}`;
+
+    for (const pair of battingPairs) {
+      if (!pair.isNoHRTeam||!isBottomVenue) continue;
+      const isTriple=bothPitchersNoHR;
+      const key=`nohr-${game.gamePk}-${pair.battingTeam}-${isTriple?'triple':'double'}`;
       if (seen.has(key)) continue; seen.add(key);
-      alerts.push({ type:count>=3?'nohr-triple':'nohr-double', game, pitcher:pitcher||{name:pair.pitcherName||'TBD',hr:0}, venueData, isBottomVenue, isNoHRPitcher, isNoHRTeam, battingTeamAbbr:pair.battingTeamAbbr });
+      alerts.push({
+        type:isTriple?'nohr-triple':'nohr-double',
+        game, battingTeamAbbr:pair.battingTeam, venueData, venueBottomRank,
+        isBottomVenue:true, isNoHRTeam:true, bothPitchersNoHR:isTriple,
+        awayPitcher:{name:game.away.pitcherName||'TBD',id:game.away.pitcherId,isNoHR:awayPitcherNoHR},
+        homePitcher:{name:game.home.pitcherName||'TBD',id:game.home.pitcherId,isNoHR:homePitcherNoHR},
+      });
     }
   }
-  return alerts.sort((a,b)=>(b.type==='nohr-triple')-(a.type==='nohr-triple'));
+  const gameKeys=new Set();
+  return alerts
+    .sort((a,b)=>(b.type==='nohr-triple')-(a.type==='nohr-triple'))
+    .filter(a=>{ const k=`${a.game.gamePk}-${a.type}`; if(gameKeys.has(k)) return false; gameKeys.add(k); return true; });
 }
 
 function renderNoHRAlerts(alerts) {
@@ -684,17 +732,21 @@ function renderNoHRAlerts(alerts) {
   if (!alerts.length) { c.innerHTML=`<div class="no-alerts">✓ No NO HR threats yet. Check back once lineups post.</div>`; return; }
   c.innerHTML=alerts.map(a=>{
     const cls=a.type==='nohr-triple'?'alert-nohr-triple':'alert-nohr-double';
-    const pH=a.pitcher?.id?handednessCache[a.pitcher.id]:null;
-    const pB=pH?`<span class="hand-badge ${pH}" style="font-size:10px;width:17px;height:17px;">${pH}</span>`:'';
-    const vTag=a.isBottomVenue?`<span class="tag tag-nohr-venue">Bottom 5 Venue · ${a.venueData?.hr||0} HRs</span>`:'';
-    const pTag=a.isNoHRPitcher?`<span class="tag tag-nohr-pitcher">Low HR Pitcher · ${a.pitcher?.hr||0} HR allowed</span>`:'';
-    const tTag=a.isNoHRTeam?`<span class="tag tag-nohr-team">Low HR Team · ${a.battingTeamAbbr}</span>`:'';
+    const awayH=a.awayPitcher?.id?handednessCache[a.awayPitcher.id]:null;
+    const homeH=a.homePitcher?.id?handednessCache[a.homePitcher.id]:null;
+    const awayB=awayH?`<span class="hand-badge ${awayH}" style="font-size:9px;width:15px;height:15px;">${awayH}</span>`:'';
+    const homeB=homeH?`<span class="hand-badge ${homeH}" style="font-size:9px;width:15px;height:15px;">${homeH}</span>`:'';
+    const vTag=`<span class="tag tag-nohr-venue">Bottom 10 Venue · ${a.venueData?.hr||0} HRs</span>`;
+    const tTag=`<span class="tag tag-nohr-team">Bottom 10 Team · ${a.battingTeamAbbr}</span>`;
+    const pTag=a.bothPitchersNoHR?`<span class="tag tag-nohr-pitcher">Both Pitchers Low HR</span>`:'';
     const allTag=a.type==='nohr-triple'?`<span class="tag" style="background:rgba(223,0,255,0.15);color:#df00ff;border:1px solid rgba(223,0,255,0.4);">🛡️ ALL 3</span>`:'';
+    const pitcherLine=a.type==='nohr-triple'
+      ?`<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c77dff;margin-top:4px;">${awayB} ${a.awayPitcher?.name||'TBD'} · ${homeB} ${a.homePitcher?.name||'TBD'}</div>`:'';
     return `<div class="${cls}">
       <div class="alert-game">${a.game.away.team} @ ${a.game.home.team} · ${a.game.time}</div>
-      <div class="alert-matchup">${pB}<span class="pitcher" style="color:#c77dff;">${a.pitcher?.name||'TBD'}</span><span class="vs">at</span><span style="color:#c77dff;">${a.game.venue}</span></div>
-      ${a.isNoHRTeam?`<div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#c77dff;margin-top:4px;">🛡️ ${a.battingTeamAbbr} — Low HR team batting</div>`:''}
-      <div class="alert-tags">${vTag}${pTag}${tTag}${allTag}</div>
+      <div class="alert-matchup"><span style="color:#c77dff;font-weight:600;">${a.battingTeamAbbr}</span><span class="vs">batting at</span><span style="color:#c77dff;">${a.game.venue}</span></div>
+      ${pitcherLine}
+      <div class="alert-tags">${vTag}${tTag}${pTag}${allTag}</div>
     </div>`;
   }).join('');
 }
@@ -1086,13 +1138,20 @@ function renderKO() {
 }
 
 function renderVenues(alertVenueIds) {
-  const top10=venues.slice(0,10), max=top10[0]?.hr||1;
-  const ranks=tiedRanks(top10,'hr');
-  document.getElementById('tab-venues').innerHTML=`<div class="stat-rows-wrap">${top10.map((v,i)=>{
+  const ranks=tiedRanks(venues,'hr');
+  document.getElementById('tab-venues').innerHTML=`<div class="stat-rows-wrap">${venues.map((v,i)=>{
+    const isTop10=i<10, isBottom10=i>=20;
     const isAlert=alertVenueIds?.has(v.venueId);
-    return `<div class="stat-row ${isAlert?'hl-gold':''}">
+    let rowClass='stat-row';
+    if(isTop10) rowClass+=' hl-top-venue';
+    else if(isBottom10) rowClass+=' hl-bottom-venue';
+    const badge=isTop10?`<span style="font-size:9px;color:var(--accent-gold);margin-left:3px;">▲</span>`:isBottom10?`<span style="font-size:9px;color:var(--accent-purple);margin-left:3px;">▼</span>`:'';
+    return `<div class="${rowClass}">
       <span class="row-rank">${ranks[i]}</span>
-      <div class="row-info"><div class="row-name">${v.name}${isAlert?'<span class="alert-dot"></span>':''}</div><div class="row-sub">${v.team}</div></div>
+      <div class="row-info">
+        <div class="row-name">${v.name}${badge}${isAlert?'<span class="alert-dot"></span>':''}</div>
+        <div class="row-sub">${v.team}</div>
+      </div>
       <span class="row-val gold">${v.hr}</span>
     </div>`;
   }).join('')}</div>`;
