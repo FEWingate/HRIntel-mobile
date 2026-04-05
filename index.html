@@ -270,15 +270,15 @@
   .tab-panel.active { display: block; }
 
   .stat-rows-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); border-top: 2px solid var(--accent-red); }
-  .stat-row.hl-top-venue { background: rgba(255,214,10,0.06) !important; border-left: 2px solid var(--accent-gold) !important; animation: mobileVenueTop 2.5s ease-in-out infinite; }
-  .stat-row.hl-bottom-venue { background: rgba(199,125,255,0.06) !important; border-left: 2px solid var(--accent-purple) !important; animation: mobileVenueBot 2.5s ease-in-out infinite; }
+  .stat-row.hl-top-venue { background: rgba(255,214,10,0.06) !important; border-left: 2px solid var(--accent-gold) !important; opacity: 1 !important; animation: mobileVenueTop 2.5s ease-in-out infinite !important; }
+  .stat-row.hl-bottom-venue { background: rgba(199,125,255,0.06) !important; border-left: 2px solid var(--accent-purple) !important; opacity: 1 !important; animation: mobileVenueBot 2.5s ease-in-out infinite !important; }
   @keyframes mobileVenueTop {
-    0%,100%{ background: rgba(255,214,10,0.04); }
-    50%{ background: rgba(255,214,10,0.1); }
+    0%,100%{ opacity:1; background: rgba(255,214,10,0.04); }
+    50%{ opacity:1; background: rgba(255,214,10,0.12); }
   }
   @keyframes mobileVenueBot {
-    0%,100%{ background: rgba(199,125,255,0.04); }
-    50%{ background: rgba(199,125,255,0.1); }
+    0%,100%{ opacity:1; background: rgba(199,125,255,0.04); }
+    50%{ opacity:1; background: rgba(199,125,255,0.12); }
   }
 
   /* ── STAT ROWS ── */
