@@ -10,33 +10,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0f1a;
-    --surface: #12152a;
-    --surface2: #1a1f38;
-    --border: #252a45;
-    --accent-red: #c41e3a;
-    --accent-red-bright: #e8354f;
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --surface2: #181c23;
+    --border: #1e2530;
+    --accent-red: #e63946;
     --accent-orange: #f4a261;
     --accent-gold: #ffd60a;
     --accent-blue: #4cc9f0;
     --accent-purple: #c77dff;
     --accent-green: #4ade80;
-    --text: #f0ebe0;
+    --text: #e8eaf0;
     --text-dim: #6b7280;
-    --text-mid: #a89f8c;
+    --text-mid: #9ca3af;
     --triple-glow: 0 0 20px rgba(255,214,10,0.25);
-    --pinstripe: repeating-linear-gradient(
-      90deg, transparent, transparent 39px,
-      rgba(255,255,255,0.015) 39px,
-      rgba(255,255,255,0.015) 40px
-    );
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
     background: var(--bg);
-    background-image: var(--pinstripe);
     color: var(--text);
     font-family: 'IBM Plex Sans', sans-serif;
     min-height: 100vh;
@@ -60,15 +53,14 @@
   /* ── HEADER ── */
   header {
     position: sticky; top: 0; z-index: 100;
-    background: linear-gradient(135deg, #0d0f1a 0%, #12152a 100%);
+    background: rgba(10,12,15,0.97);
     backdrop-filter: blur(12px);
-    border-bottom: 2px solid var(--accent-red);
-    box-shadow: 0 2px 16px rgba(196,30,58,0.15);
+    border-bottom: 1px solid var(--border);
     padding: 12px 16px;
     display: flex; align-items: center; justify-content: space-between;
   }
   .logo { display: flex; align-items: baseline; gap: 8px; }
-  .logo-main { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; color: var(--text); }
+  .logo-main { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 3px; }
   .logo-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--accent-red); letter-spacing: 2px; }
   .header-right { display: flex; align-items: center; gap: 10px; }
   .live-dot { display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent-green); }
@@ -81,19 +73,18 @@
 
   .refresh-btn {
     font-family: 'IBM Plex Mono', monospace; font-size: 16px;
-    background: transparent; border: 1px solid var(--accent-red);
-    color: var(--accent-red); border-radius: 6px; cursor: pointer;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-mid); border-radius: 6px; cursor: pointer;
     padding: 6px 10px; transition: all 0.2s;
   }
-  .refresh-btn:active { background: var(--accent-red); color: #fff; }
   .refresh-btn:disabled { opacity: .4; }
 
   /* ── BOTTOM NAV ── */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-    background: linear-gradient(135deg, #0d0f1a 0%, #12152a 100%);
+    background: rgba(10,12,15,0.98);
     backdrop-filter: blur(12px);
-    border-top: 2px solid var(--accent-red);
+    border-top: 1px solid var(--border);
     display: flex;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -105,8 +96,8 @@
     transition: color 0.2s; text-transform: uppercase;
   }
   .nav-btn .nav-icon { font-size: 18px; line-height: 1; }
-  .nav-btn.active { color: var(--accent-red); }
-  .nav-btn.active .nav-icon { filter: drop-shadow(0 0 4px rgba(196,30,58,0.5)); }
+  .nav-btn.active { color: var(--accent-blue); }
+  .nav-btn.active .nav-icon { filter: drop-shadow(0 0 4px var(--accent-blue)); }
 
   /* ── PAGES ── */
   .page { display: none; padding: 16px; }
@@ -174,9 +165,7 @@
 
   /* ── GAME CARDS (mobile — vertical stack) ── */
   .game-card {
-    background: linear-gradient(160deg, #12152a 0%, #0d0f1a 100%);
-    border: 1px solid var(--border);
-    border-top: 2px solid var(--accent-red);
+    background: var(--surface); border: 1px solid var(--border);
     border-radius: 12px; margin-bottom: 12px; overflow: hidden;
     cursor: pointer; transition: border-color 0.2s;
     -webkit-tap-highlight-color: transparent;
@@ -203,11 +192,11 @@
     50%{ border-color: rgba(199,125,255,0.9); box-shadow: 0 0 10px rgba(199,125,255,0.2); }
   }
 
-  .game-card-header { padding: 12px 14px 10px; background: rgba(196,30,58,0.05); border-bottom: 1px solid var(--border); }
+  .game-card-header { padding: 12px 14px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); }
   .game-teams { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
   .game-teams .away { color: var(--text-mid); }
   .game-teams .home { color: var(--text); }
-  .game-teams .at { color: var(--accent-red); font-size: 14px; }
+  .game-teams .at { color: var(--text-dim); font-size: 14px; }
   .game-meta { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
   .threat-badge { display: inline-block; font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 1px; padding: 2px 8px; border-radius: 3px; margin-top: 5px; }
   .threat-badge.triple { background: var(--accent-gold); color: #000; }
@@ -249,8 +238,8 @@
 
   /* ── LEADERBOARD TABS ── */
   .tab-bar {
-    display: flex; background: var(--surface);
-    border: 1px solid var(--border); border-top: 2px solid var(--accent-red); border-radius: 10px;
+    display: flex; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px;
     padding: 4px; gap: 4px; margin-bottom: 14px;
   }
   .tab-btn {
@@ -260,16 +249,16 @@
     background: transparent; color: var(--text-dim); cursor: pointer;
     transition: all 0.2s; line-height: 1.3; text-align: center;
   }
-  .tab-btn.active { background: var(--surface2); color: var(--text); border-bottom: 2px solid var(--accent-red); }
-  .tab-btn.active.blue   { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
-  .tab-btn.active.red    { color: var(--accent-red-bright); border-bottom-color: var(--accent-red); }
-  .tab-btn.active.gold   { color: var(--accent-gold); border-bottom-color: var(--accent-gold); }
-  .tab-btn.active.purple { color: var(--accent-purple); border-bottom-color: var(--accent-purple); }
+  .tab-btn.active { background: var(--surface); color: var(--text); }
+  .tab-btn.active.blue   { color: var(--accent-blue); }
+  .tab-btn.active.red    { color: var(--accent-red); }
+  .tab-btn.active.gold   { color: var(--accent-gold); }
+  .tab-btn.active.purple { color: var(--accent-purple); }
 
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
-  .stat-rows-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); border-top: 2px solid var(--accent-red); }
+  .stat-rows-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
   .stat-row.hl-top-venue { background: rgba(255,214,10,0.06) !important; border-left: 2px solid var(--accent-gold) !important; opacity: 1 !important; animation: mobileVenueTop 2.5s ease-in-out infinite !important; }
   .stat-row.hl-bottom-venue { background: rgba(199,125,255,0.06) !important; border-left: 2px solid var(--accent-purple) !important; opacity: 1 !important; animation: mobileVenueBot 2.5s ease-in-out infinite !important; }
   @keyframes mobileVenueTop {
@@ -284,25 +273,22 @@
   /* ── STAT ROWS ── */
   .stat-row {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px; border-bottom: 1px solid rgba(37,42,69,0.6);
+    padding: 10px 14px; border-bottom: 1px solid rgba(30,37,48,0.6);
     background: var(--surface); border-radius: 0;
     animation: rowIn 0.25s ease forwards; opacity: 0;
-    border-left: 2px solid transparent; transition: border-left-color 0.15s;
   }
   .stat-row:first-child { border-radius: 10px 10px 0 0; }
   .stat-row:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
   .stat-row:only-child { border-radius: 10px; }
-  .stat-row:hover { border-left-color: var(--accent-red); background: rgba(196,30,58,0.04); }
   @keyframes rowIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
-  .stat-rows-wrap { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
 
-  .row-rank { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent-red); width: 22px; flex-shrink: 0; font-weight: 600; }
+  .row-rank { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); width: 22px; flex-shrink: 0; }
   .row-info { flex: 1; min-width: 0; }
   .row-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
   .row-sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 1px; }
   .row-val { font-family: 'Bebas Neue', sans-serif; font-size: 24px; line-height: 1; flex-shrink: 0; }
   .row-val.blue   { color: var(--accent-blue); }
-  .row-val.red    { color: var(--accent-red-bright); }
+  .row-val.red    { color: var(--accent-red); }
   .row-val.gold   { color: var(--accent-gold); }
   .row-val.purple { color: var(--accent-purple); }
   .row-sub2 { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-mid); text-align: right; }
@@ -344,9 +330,8 @@
 
   .modal {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(160deg, #12152a 0%, #0d0f1a 100%);
-    border-radius: 20px 20px 0 0;
-    border-top: 3px solid var(--accent-red);
+    background: var(--surface); border-radius: 20px 20px 0 0;
+    border-top: 1px solid var(--border);
     max-height: 90vh; overflow-y: auto;
     transform: translateY(100%); transition: transform 0.3s ease;
     padding-bottom: env(safe-area-inset-bottom, 16px);
@@ -354,16 +339,15 @@
   .modal-overlay.open .modal { transform: translateY(0); }
   .modal::-webkit-scrollbar { display: none; }
 
-  .modal-handle { width: 40px; height: 4px; background: var(--accent-red); border-radius: 2px; margin: 12px auto 0; opacity: 0.5; }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 0; }
   .modal-header { padding: 14px 20px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; }
-  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; color: var(--text); }
-  .modal-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-mid); margin-top: 3px; }
-  .modal-close { font-size: 18px; color: var(--text-dim); background: none; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-  .modal-close:active { color: var(--accent-red); border-color: var(--accent-red); }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; }
+  .modal-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+  .modal-close { font-size: 18px; color: var(--text-dim); background: none; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
   .modal-body { padding: 16px 20px 24px; }
 
   .modal-section { margin-bottom: 20px; }
-  .modal-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--accent-red); text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(196,30,58,0.3); }
+  .modal-section-title { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
 
   /* Weather pills */
   .info-pills { display: flex; gap: 8px; }
@@ -617,6 +601,19 @@
 <script>
 const SEASON = 2026;
 const BASE   = 'https://statsapi.mlb.com/api/v1';
+
+// ── TEAM COLORS ────────────────────────────────────────────────────────
+const TEAM_COLORS = {
+  'ARI':['#A71930'],'ATL':['#CE1141'],'BAL':['#DF4601'],'BOS':['#BD3039'],
+  'CHC':['#0E3386'],'CWS':['#27251F'],'CIN':['#C6011F'],'CLE':['#00385D'],
+  'COL':['#333366'],'DET':['#0C2340'],'HOU':['#002D62'],'KC':['#004687'],
+  'LAA':['#BA0021'],'LAD':['#005A9C'],'MIA':['#00A3E0'],'MIL':['#12284B'],
+  'MIN':['#002B5C'],'NYM':['#002D72'],'NYY':['#003087'],'OAK':['#003831'],
+  'PHI':['#E81828'],'PIT':['#27251F'],'SD':['#2F241D'],'SF':['#FD5A1E'],
+  'SEA':['#0C2C56'],'STL':['#C41E3A'],'TB':['#092C5C'],'TEX':['#003278'],
+  'TOR':['#134A8E'],'WSH':['#AB0003'],'ATH':['#003831']
+};
+function teamColor(abbr) { return TEAM_COLORS[abbr]?.[0]||null; }
 
 let hitters=[], hrPitchers=[], koPitchers=[], venues=[], todayGames=[];
 let noHRPitchersAL=[], noHRPitchersNL=[], noHRTeams=[], teamHRLeaderboard=[];
@@ -958,19 +955,21 @@ function analyzeMatchups() {
 
 // ── LIVE SCORE HTML ──────────────────────────────────────────────────
 function liveScoreHTML(game) {
+  const atc=teamColor(game.away.team)||'transparent';
+  const htc=teamColor(game.home.team)||'transparent';
   if (game.isLive&&game.awayRuns!==null) {
     const aw=game.awayRuns>game.homeRuns, hw=game.homeRuns>game.awayRuns;
     return `<div class="live-score is-live">
-      <div class="score-team"><span class="score-abbr">${game.away.team}</span><span class="score-runs ${aw?'winning':''}">${game.awayRuns}</span></div>
+      <div class="score-team" style="background:${atc}18;border-radius:6px;padding:3px 6px;"><span class="score-abbr">${game.away.team}</span><span class="score-runs ${aw?'winning':''}">${game.awayRuns}</span></div>
       <div class="score-middle"><span class="inning-badge live">${game.inningHalf==='Top'?'▲':'▼'} ${game.inningOrd}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent-green)">LIVE</span></div>
-      <div class="score-team"><span class="score-runs ${hw?'winning':''}">${game.homeRuns}</span><span class="score-abbr">${game.home.team}</span></div>
+      <div class="score-team" style="background:${htc}18;border-radius:6px;padding:3px 6px;"><span class="score-runs ${hw?'winning':''}">${game.homeRuns}</span><span class="score-abbr">${game.home.team}</span></div>
     </div>`;
   } else if (game.isFinal) {
     const aw=(game.awayRuns??0)>(game.homeRuns??0), hw=(game.homeRuns??0)>(game.awayRuns??0);
     return `<div class="live-score is-final">
-      <div class="score-team"><span class="score-abbr">${game.away.team}</span><span class="score-runs" style="color:${aw?'var(--accent-red)':'var(--text-mid)'}">${game.awayRuns??'—'}</span></div>
+      <div class="score-team" style="background:${atc}15;border-radius:6px;padding:3px 6px;"><span class="score-abbr">${game.away.team}</span><span class="score-runs" style="color:${aw?'var(--accent-red)':'var(--text-mid)'}">${game.awayRuns??'—'}</span></div>
       <div class="score-middle"><span class="inning-badge final">FINAL</span></div>
-      <div class="score-team"><span class="score-runs" style="color:${hw?'var(--accent-red)':'var(--text-mid)'}">${game.homeRuns??'—'}</span><span class="score-abbr">${game.home.team}</span></div>
+      <div class="score-team" style="background:${htc}15;border-radius:6px;padding:3px 6px;"><span class="score-runs" style="color:${hw?'var(--accent-red)':'var(--text-mid)'}">${game.homeRuns??'—'}</span><span class="score-abbr">${game.home.team}</span></div>
     </div>`;
   } else {
     return `<div class="live-score" style="justify-content:center;"><span class="inning-badge scheduled">🕐 ${game.time}</span></div>`;
@@ -1103,7 +1102,9 @@ function renderHitters(alertIds) {
   const ranks=tiedRanks(hitters,'hr');
   document.getElementById('tab-hitters').innerHTML=`<div class="stat-rows-wrap">${hitters.map((p,i)=>{
     const isAlert=alertIds?.has(p.id);
-    return `<div class="stat-row ${isAlert?'hl-blue':''}">
+    const tc=teamColor(p.team);
+    const style=(!isAlert&&tc)?`style="background:${tc}12;border-left:2px solid ${tc}55;"`:''
+    return `<div class="stat-row ${isAlert?'hl-blue':''}" ${style}>
       <span class="row-rank">${ranks[i]}</span>
       ${handBadge(p.hand)||'<span style="width:18px;display:inline-block;"></span>'}
       <div class="row-info"><div class="row-name">${p.name}${isAlert?'<span class="alert-dot"></span>':''}</div><div class="row-sub"><span class="name-team-tag">${p.team} (${p.league})</span></div></div>
@@ -1117,7 +1118,9 @@ function renderPitchers(alertIds) {
   const ranks=tiedRanks(hrPitchers,'hr');
   document.getElementById('tab-pitchers').innerHTML=`<div class="stat-rows-wrap">${hrPitchers.map((p,i)=>{
     const isAlert=alertIds?.has(p.id);
-    return `<div class="stat-row ${isAlert?'hl-red':''}">
+    const tc=teamColor(p.team);
+    const style=(!isAlert&&tc)?`style="background:${tc}12;border-left:2px solid ${tc}55;"`:''
+    return `<div class="stat-row ${isAlert?'hl-red':''}" ${style}>
       <span class="row-rank">${ranks[i]}</span>
       ${handBadge(p.hand)||'<span style="width:18px;display:inline-block;"></span>'}
       <div class="row-info"><div class="row-name">${p.name}${isAlert?'<span class="alert-dot"></span>':''}</div><div class="row-sub"><span class="name-team-tag">${p.team} (${p.league})</span></div></div>
@@ -1128,13 +1131,16 @@ function renderPitchers(alertIds) {
 
 function renderKO() {
   const ranks=tiedRanks(koPitchers,'k');
-  document.getElementById('tab-ko').innerHTML=`<div class="stat-rows-wrap">${koPitchers.map((p,i)=>`
-    <div class="stat-row">
+  document.getElementById('tab-ko').innerHTML=`<div class="stat-rows-wrap">${koPitchers.map((p,i)=>{
+    const tc=teamColor(p.team);
+    const style=tc?`style="background:${tc}12;border-left:2px solid ${tc}55;"`:''
+    return `<div class="stat-row" ${style}>
       <span class="row-rank">${ranks[i]}</span>
       ${handBadge(p.hand)||'<span style="width:18px;display:inline-block;"></span>'}
       <div class="row-info"><div class="row-name">${p.name}</div><div class="row-sub"><span class="name-team-tag">${p.team} (${p.league})</span></div></div>
       <div style="text-align:right;flex-shrink:0;"><span class="row-val purple">${p.k}</span><div class="row-sub2">${p.kpg}/G</div></div>
-    </div>`).join('')}</div>`;
+    </div>`;
+  }).join('')}</div>`;
 }
 
 function renderVenues(alertVenueIds) {
@@ -1184,12 +1190,15 @@ async function fetchTeamHRLeaderboard() {
 
 function renderTeamHR() {
   const ranks=tiedRanks(teamHRLeaderboard,'hr');
-  document.getElementById('tab-teamhr').innerHTML=`<div class="stat-rows-wrap">${teamHRLeaderboard.map((t,i)=>`
-    <div class="stat-row">
+  document.getElementById('tab-teamhr').innerHTML=`<div class="stat-rows-wrap">${teamHRLeaderboard.map((t,i)=>{
+    const tc=teamColor(t.abbr);
+    const style=tc?`style="background:${tc}12;border-left:2px solid ${tc}55;"`:''
+    return `<div class="stat-row" ${style}>
       <span class="row-rank">${ranks[i]}</span>
       <div class="row-info"><div class="row-name">${t.name}</div><div class="row-sub"><span class="name-team-tag">${t.abbr} (${t.league})</span></div></div>
       <span class="row-val" style="color:var(--accent-green);">${t.hr}</span>
-    </div>`).join('')}</div>`;
+    </div>`;
+  }).join('')}</div>`;
 }
 
 // ── MODAL ────────────────────────────────────────────────────────────
