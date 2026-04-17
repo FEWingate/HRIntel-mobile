@@ -1198,9 +1198,20 @@
     .panel { width: 100% !important; }
     .panel-header { padding: 12px 14px 10px; }
 
-    /* Leaderboard tables — full width */
-    .stat-table { font-size: 11px; }
-    .bar-cell { display: none; } /* hide bar charts on mobile */
+    /* Stack all panels vertically on mobile */
+    .panel-wrap { flex-direction: column !important; padding: 10px !important; gap: 10px !important; }
+    .panel { width: 100% !important; min-width: 0 !important; }
+    .panel-header { padding: 12px 14px 10px; }
+    .scroll-panel { max-height: none !important; }
+    /* Show full player names — no truncation */
+    .player-name { white-space: normal !important; word-break: break-word !important; }
+    .name-team-tag { display: inline !important; }
+    /* Stack venues stadiums 3-column grid to single column */
+    .stadiums-inner { grid-template-columns: 1fr !important; }
+    .stadiums-col-wrap { border-right: none !important; border-bottom: 1px solid var(--border); }
+    .stadiums-col-wrap:last-child { border-bottom: none; }
+    /* Hide bar charts on mobile to save space */
+    .bar-cell { display: none !important; }
 
     /* Footer hidden on mobile */
     footer { display: none; }
